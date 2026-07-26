@@ -12,6 +12,7 @@ import { SidebarPrefsProvider } from "@/context/SidebarPrefsContext";
 import { AppShell } from "@/components/layout/AppShell";
 import { GlobalCommandPalette } from "@/components/chat/GlobalCommandPalette";
 import { MagnusIntro } from "@/components/brand/MagnusIntro";
+import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import "./globals.css";
 
 /** iPhone-safe viewport — enables env(safe-area-inset-*) on notched devices */
@@ -160,6 +161,7 @@ export default function RootLayout({
                     <ScoutProvider>
                       <AppShell>{children}</AppShell>
                       <GlobalCommandPalette />
+                      <OnboardingTour />
                     </ScoutProvider>
                   </MessagingProvider>
                 </SidebarPrefsProvider>

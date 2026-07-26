@@ -21,6 +21,7 @@ import {
   isIntroEnabled,
   setIntroEnabled,
 } from "@/lib/intro";
+import { requestOnboardingTourReplay } from "@/lib/onboarding-tour";
 import {
   CHAT_SIDEBAR_CATALOG,
   HOME_NAV_CATALOG,
@@ -135,6 +136,40 @@ export function SettingsView() {
                     });
                   }}
                 />
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-medium text-[var(--text-primary)]">
+                      Show me around
+                    </p>
+                    <p className="mt-0.5 text-[12px] leading-relaxed text-[var(--text-muted)]">
+                      Replay the first-run tour of Home, Catch me up, Messages,
+                      and Feed
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Clears done flag, sets session force, fires start event
+                      // (OnboardingTour navigates home and opens the tour)
+                      requestOnboardingTourReplay();
+                      toast({
+                        title: "Tour starting",
+                        description: "A short walkthrough of Magnus.",
+                        tone: "success",
+                        duration: 2200,
+                      });
+                    }}
+                    className={cn(
+                      "shrink-0 rounded-full border border-[var(--glass-border-soft)]",
+                      "px-3 py-1.5 text-[12.5px] font-semibold text-[var(--text-secondary)]",
+                      "hover:bg-[var(--hover-fill)] hover:text-[var(--text-primary)]",
+                      "outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-ring)]"
+                    )}
+                    data-replay-onboarding-tour
+                  >
+                    Replay
+                  </button>
+                </div>
               </div>
             </Section>
 

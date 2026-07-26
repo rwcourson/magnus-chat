@@ -666,6 +666,13 @@ function SidebarPanel({
               >
                 <Link
                   href={item.href}
+                  data-tour-target={
+                    item.id === "messages" || item.id === "feed"
+                      ? item.id
+                      : item.id === "home"
+                        ? "home"
+                        : undefined
+                  }
                   onClick={() => {
                     if (item.action === "home") goHome();
                     else if (item.action === "messages") {

@@ -43,6 +43,7 @@ export function HomeLanding({ onSend, disabled }: HomeLandingProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease: easeSpring }}
             className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"
+            data-tour-home
           >
             <div className="min-w-0">
               <p className="text-[12px] font-medium text-[var(--text-muted)]">

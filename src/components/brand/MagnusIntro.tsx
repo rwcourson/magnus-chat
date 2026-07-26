@@ -8,6 +8,7 @@ import {
   markIntroSeen,
   shouldShowIntro,
 } from "@/lib/intro";
+import { MAGNUS_INTRO_DISMISS_EVENT } from "@/lib/onboarding-tour";
 import { useTheme } from "@/context/ThemeContext";
 import { easeSpring } from "@/lib/motion";
 import { cn } from "@/lib/utils";
@@ -48,6 +49,12 @@ export function MagnusIntro() {
     if (!show) {
       clearBootCover();
       markIntroSeen();
+      // Intro skipped/disabled — let the tour know the shell is free
+      try {
+        window.dispatchEvent(new CustomEvent(MAGNUS_INTRO_DISMISS_EVENT));
+      } catch {
+        /* ignore */
+      }
     }
 
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -74,6 +81,12 @@ export function MagnusIntro() {
       markIntroSeen();
       clearBootCover();
       setVisible(false);
+      // Let the tour hand off as soon as dismiss starts (not after exit fade)
+      try {
+        window.dispatchEvent(new CustomEvent(MAGNUS_INTRO_DISMISS_EVENT));
+      } catch {
+        /* ignore */
+      }
     };
 
     const t = window.setTimeout(dismiss, introDurationMs(reduced));

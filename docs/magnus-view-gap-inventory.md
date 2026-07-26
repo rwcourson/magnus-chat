@@ -48,6 +48,7 @@ Depth key:
 | AI thread | `MessageList`, `MessageBubble`, `ThreadHeader` | **Full mock** | Blocks, calendar widget, regenerate/edit |
 | Global command palette | `GlobalCommandPalette` | **Full mock** | ⌘K jump |
 | Magnus intro | `MagnusIntro` + SVG | **Full mock** | Full-page brand splash each load |
+| First-run tour | `OnboardingTour` + `onboarding-tour` | **Full mock** | Post-intro show-me-around (Home, Catch me up, Messages, Feed, Chat mode); Settings Replay |
 | Magnus history | `MagnusChatControl`, `MagnusHistoryDrawer` | **Full mock** | Rail + header entry to AI history |
 | Feed popup AI | `MagnusChatPopup` | **Full mock** | Floating chat on feed |
 | Placeholder shell | `PlaceholderPage` | **Shell-only** | Component exists; **no route imports it** |
@@ -148,7 +149,7 @@ Relative to **production Magnus (observed 2026-07-25)** and intranet direction o
 | **Notifications** | **Partial** | PageHeader list; sparse empty/group polish vs feed |
 | **Comms / Approvals** | **Pass** | PageHeader, selection empty states, glass panels |
 | **Skills / Routines / Integrations / Workspaces** | **Partial** | Shared PageHeader + glass cards; missing detail/empty/create depth vs prod catalog |
-| **Settings** | **Pass** | PageHeader, prefs cards, token-aligned toggles |
+| **Settings** | **Pass** | PageHeader, prefs cards, token-aligned toggles, startup intro + tour Replay |
 | **Search** | **Pass** | PageHeader + grouped results + empty guidance |
 | **Help** | **Partial** | PageHeader FAQ; no academy imagery / course structure |
 | **Calendar** | **Partial** | PageHeader agenda; weaker than AI availability calendar craft |

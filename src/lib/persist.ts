@@ -46,4 +46,6 @@ export const PERSIST_KEYS = {
   sidebarCollapsed: "magnus-sidebar-collapsed-v1",
   bookmarks: "magnus-feed-bookmarks-v1",
   sidebarPrefs: "magnus-sidebar-prefs-v1",
+  /** First-run show-me-around — completed | skipped once done */
+  onboardingTour: "magnus-onboarding-tour-v1",
 } as const;

@@ -30,7 +30,18 @@ See [`.env.example`](./.env.example).
 | `npm run dev` | Dev server |
 | `npm run build` | Production build |
 | `npm start` | Serve production build |
-| `npm test` | Seed + layout verification scripts |
+| `npm test` | Seed + layout verification scripts (includes onboarding tour) |
+| `npm run test:onboarding-tour` | First-run tour gate + step wiring only |
+
+## First-run experience
+
+1. **Monogram intro** — full-screen Magnus logo on load (toggle under Settings → Appearance → Startup animation).
+2. **Show-me-around tour** — short spotlight walkthrough on first visit after the intro:
+   - Home → Catch me up → Messages → Feed → Home/Chat mode (opens a blank Magnus chat on finish)
+   - Light blur veil, rounded spotlight, **Skip tour** anytime
+   - Replay anytime: **Settings → Appearance → Show me around → Replay**
+
+Details: [`docs/onboarding-tour.md`](./docs/onboarding-tour.md).
 
 ## Stack
 

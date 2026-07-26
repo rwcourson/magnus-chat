@@ -17,6 +17,10 @@ High-level reference for the visual language used in **magnus-chat** (B&G intran
 | **One radius language for faces** | **Rounded squares** (`rounded-lg` / `rounded-md`) for people and channel images—never mix circles and squares for portraits. |
 | **Pills for chrome** | Filters, tags, primary CTAs, and the Ask Magnus FAB use **full pills** (`rounded-full`). |
 
+### First-run tour (overlays)
+
+Product tour overlays use the same rules: **glass coach card**, **light dim + light blur** (context stays readable — no blackout), **rounded spotlight hole** aligned with `rounded-2xl` targets, hairline rings not neon coachmarks. See `docs/onboarding-tour.md` and `src/components/onboarding/`.
+
 ---
 
 ## 2. Typography
