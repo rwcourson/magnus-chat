@@ -1,0 +1,360 @@
+import type { FeedAuthor } from "@/types/feed";
+
+export type PersonProfile = FeedAuthor & {
+  id: string;
+  bio: string;
+  division?: string;
+  projects?: string[];
+};
+
+export type FeedNotification = {
+  id: string;
+  kind: "like" | "comment" | "mention" | "follow" | "system";
+  title: string;
+  body: string;
+  createdAt: string;
+  read: boolean;
+  actor?: FeedAuthor;
+  href?: string;
+};
+
+export const peopleDirectory: PersonProfile[] = [
+  {
+    id: "p-maya",
+    name: "Maya Chen",
+    handle: "mchen",
+    role: "Senior PM",
+    office: "Atlanta",
+    initials: "MC",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=256&h=256&fit=crop&crop=faces",
+    bio: "Leads downtown tower delivery. Always happy to jam on logistics and look-aheads.",
+    division: "Southeast",
+    projects: ["Downtown tower", "ATL-2841"],
+  },
+  {
+    id: "p-derek",
+    name: "Derek Walsh",
+    handle: "dwalsh",
+    role: "Superintendent",
+    office: "Nashville",
+    initials: "DW",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=256&h=256&fit=crop&crop=faces",
+    bio: "Field leadership for Level 3 pours and night shift coordination.",
+    division: "Mid-South",
+    projects: ["Nashville Level 3"],
+  },
+  {
+    id: "p-james",
+    name: "James Courson",
+    handle: "jcourson",
+    role: "Innovation Manager",
+    office: "Birmingham",
+    initials: "JC",
+    verified: true,
+    avatarUrl:
+      "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=256&h=256&fit=crop&crop=faces",
+    bio: "Magnus workflows, agent skills, and office hours for project teams.",
+    division: "Enterprise",
+    projects: ["Magnus platform"],
+  },
+  {
+    id: "p-priya",
+    name: "Priya Nair",
+    handle: "pnair",
+    role: "Estimating Lead",
+    office: "Charlotte",
+    initials: "PN",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=256&h=256&fit=crop&crop=faces",
+    bio: "Submittal SLAs, takeoff assists, and knowledge pack curator.",
+    division: "Carolinas",
+    projects: ["Enterprise EH&S"],
+  },
+  {
+    id: "p-robert",
+    name: "Robert Courson",
+    handle: "rcourson",
+    role: "Platform",
+    office: "Birmingham",
+    initials: "RC",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=256&h=256&fit=crop&crop=faces",
+    bio: "Building Magnus for field and office. Ask about connectors and routines.",
+    division: "Enterprise",
+    projects: ["Magnus platform"],
+  },
+  {
+    id: "p-safety",
+    name: "Safety Ops",
+    handle: "safety",
+    role: "EH&S",
+    office: "Enterprise",
+    initials: "SO",
+    verified: true,
+    avatarUrl:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=256&h=256&fit=crop&crop=faces",
+    bio: "Toolbox talks, TRIR playbooks, and observation logging.",
+    division: "Enterprise",
+    projects: ["Enterprise EH&S"],
+  },
+  {
+    id: "p-lena",
+    name: "Lena Ortiz",
+    handle: "lortiz",
+    role: "Project Engineer",
+    office: "Atlanta",
+    initials: "LO",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=256&h=256&fit=crop&crop=faces",
+    bio: "RFIs, submittals, and field questions for downtown tower.",
+    division: "Southeast",
+    projects: ["Downtown tower", "ATL-2841"],
+  },
+  {
+    id: "p-marcus",
+    name: "Marcus Webb",
+    handle: "mwebb",
+    role: "MEP Coordinator",
+    office: "Nashville",
+    initials: "MW",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=256&h=256&fit=crop&crop=faces",
+    bio: "Mechanical/electrical coordination and long-lead tracking.",
+    division: "Mid-South",
+    projects: ["Nashville Level 3"],
+  },
+  {
+    id: "p-aisha",
+    name: "Aisha Rahman",
+    handle: "arahman",
+    role: "QA/QC Lead",
+    office: "Charlotte",
+    initials: "AR",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=256&h=256&fit=crop&crop=faces",
+    bio: "Inspection checklists, pour windows, and closeout packs.",
+    division: "Carolinas",
+    projects: ["Enterprise EH&S", "Carolinas SLA"],
+  },
+  {
+    id: "p-tom",
+    name: "Tom Hale",
+    handle: "thale",
+    role: "Superintendent",
+    office: "Birmingham",
+    initials: "TH",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=256&h=256&fit=crop&crop=faces",
+    bio: "Self-perform concrete and night shift sequencing.",
+    division: "Enterprise",
+    projects: ["Magnus platform"],
+  },
+  {
+    id: "p-sofia",
+    name: "Sofia Kim",
+    handle: "skim",
+    role: "VDC Manager",
+    office: "Atlanta",
+    initials: "SK",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=256&h=256&fit=crop&crop=faces",
+    bio: "Model coordination, clash reports, and field tablets.",
+    division: "Southeast",
+    projects: ["Downtown tower"],
+  },
+  {
+    id: "p-chris",
+    name: "Chris Delgado",
+    handle: "cdelgado",
+    role: "Field Engineer",
+    office: "Nashville",
+    initials: "CD",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=256&h=256&fit=crop&crop=faces",
+    bio: "Daily reports, quantity tracking, and laydown logistics.",
+    division: "Mid-South",
+    projects: ["Nashville Level 3"],
+  },
+  {
+    id: "p-nina",
+    name: "Nina Patel",
+    handle: "npatel",
+    role: "Procurement",
+    office: "Charlotte",
+    initials: "NP",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=256&h=256&fit=crop&crop=faces",
+    bio: "Vendor stamps, long-lead packages, and buyout tracking.",
+    division: "Carolinas",
+    projects: ["Carolinas SLA"],
+  },
+  {
+    id: "p-evan",
+    name: "Evan Brooks",
+    handle: "ebrooks",
+    role: "IT Support",
+    office: "Birmingham",
+    initials: "EB",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1463453091185-61582044d556?w=256&h=256&fit=crop&crop=faces",
+    bio: "Devices, VPN, and Magnus access for field crews.",
+    division: "Enterprise",
+    projects: ["Magnus platform"],
+  },
+  {
+    id: "p-jordan",
+    name: "Jordan Lee",
+    handle: "jlee",
+    role: "Scheduler",
+    office: "Dallas",
+    initials: "JL",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=256&h=256&fit=crop&crop=faces",
+    bio: "Pull plans, look-aheads, and constraint logs for Texas jobs.",
+    division: "Southwest",
+    projects: ["Dallas Midtown", "ATL-2841"],
+  },
+  {
+    id: "p-rachel",
+    name: "Rachel Nguyen",
+    handle: "rnguyen",
+    role: "Safety Manager",
+    office: "Houston",
+    initials: "RN",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=256&h=256&fit=crop&crop=faces",
+    bio: "Site orientations, incident closeout, and bilingual toolbox talks.",
+    division: "Southwest",
+    projects: ["Houston Med Center", "Enterprise EH&S"],
+  },
+  {
+    id: "p-kevin",
+    name: "Kevin Okafor",
+    handle: "kokafor",
+    role: "Cost Engineer",
+    office: "Birmingham",
+    initials: "KO",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?w=256&h=256&fit=crop&crop=faces",
+    bio: "Forecasts, change orders, and margin health for enterprise jobs.",
+    division: "Enterprise",
+    projects: ["Magnus platform", "Downtown tower"],
+  },
+  {
+    id: "p-hannah",
+    name: "Hannah Berg",
+    handle: "hberg",
+    role: "HR Partner",
+    office: "Charlotte",
+    initials: "HB",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=256&h=256&fit=crop&crop=faces",
+    bio: "Onboarding, craft recruiting, and benefits questions for Carolinas.",
+    division: "Carolinas",
+    projects: ["Carolinas SLA"],
+  },
+];
+
+export const feedNotifications: FeedNotification[] = [
+  {
+    id: "n-1",
+    kind: "comment",
+    title: "Maya Chen replied to you",
+    body: "Thanks Derek — attaching the morning huddle photo from Atlanta.",
+    createdAt: "2026-07-23T18:12:00Z",
+    read: false,
+    actor: peopleDirectory[0],
+    href: "/feed",
+  },
+  {
+    id: "n-2",
+    kind: "like",
+    title: "James Courson liked your post",
+    body: "Q3 safety milestone",
+    createdAt: "2026-07-23T17:50:00Z",
+    read: false,
+    actor: peopleDirectory[2],
+    href: "/feed",
+  },
+  {
+    id: "n-3",
+    kind: "mention",
+    title: "You were mentioned",
+    body: "Priya Nair mentioned you in Submittal process FAQ",
+    createdAt: "2026-07-23T15:20:00Z",
+    read: true,
+    actor: peopleDirectory[3],
+    href: "/feed",
+  },
+  {
+    id: "n-4",
+    kind: "system",
+    title: "OnBase · 2 invoices need approval",
+    body: "Action tiles on Home surface outstanding finance items.",
+    createdAt: "2026-07-23T12:00:00Z",
+    read: true,
+    href: "/approvals?source=onbase",
+  },
+  {
+    id: "n-5",
+    kind: "follow",
+    title: "Derek Walsh started following Downtown tower",
+    body: "Workspace activity from NSH and ATL crews.",
+    createdAt: "2026-07-22T20:00:00Z",
+    read: true,
+    actor: peopleDirectory[1],
+    href: "/workspaces",
+  },
+  {
+    id: "n-6",
+    kind: "comment",
+    title: "Lena Ortiz replied on Downtown tower — week 28",
+    body: "Flagger plan draft is in the thread — review before Friday pick.",
+    createdAt: "2026-07-23T16:40:00Z",
+    read: false,
+    actor: peopleDirectory.find((p) => p.id === "p-lena"),
+    href: "/feed?post=fp-2",
+  },
+  {
+    id: "n-7",
+    kind: "mention",
+    title: "Sofia Kim mentioned you",
+    body: "Clash report for Level 3 MEP is ready in VDC.",
+    createdAt: "2026-07-23T11:15:00Z",
+    read: false,
+    actor: peopleDirectory.find((p) => p.id === "p-sofia"),
+    href: "/feed",
+  },
+  {
+    id: "n-8",
+    kind: "like",
+    title: "Marcus Webb liked your post",
+    body: "Concrete pour on Level 3",
+    createdAt: "2026-07-22T22:10:00Z",
+    read: true,
+    actor: peopleDirectory.find((p) => p.id === "p-marcus"),
+    href: "/feed?post=fp-6",
+  },
+  {
+    id: "n-9",
+    kind: "comment",
+    title: "Jordan Lee replied on schedule freeze",
+    body: "Look-ahead freeze is locked for Dallas Midtown — see feed.",
+    createdAt: "2026-07-23T10:05:00Z",
+    read: false,
+    actor: peopleDirectory.find((p) => p.id === "p-jordan"),
+    href: "/feed?post=fp-15",
+  },
+  {
+    id: "n-10",
+    kind: "mention",
+    title: "Rachel Nguyen mentioned you",
+    body: "Spanish toolbox deck is ready for review before night shift.",
+    createdAt: "2026-07-23T09:40:00Z",
+    read: false,
+    actor: peopleDirectory.find((p) => p.id === "p-rachel"),
+    href: "/feed?post=fp-16",
+  },
+];

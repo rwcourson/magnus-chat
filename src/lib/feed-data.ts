@@ -1,0 +1,1013 @@
+import type { FeedPost } from "@/types/feed";
+
+/**
+ * B&G-flavored demo timeline — presentation only.
+ * Timestamps relative to a fixed “now” of 2026-07-23T19:00:00Z for stable demos.
+ */
+export const feedPosts: FeedPost[] = [
+  {
+    id: "fp-1",
+    category: "company",
+    createdAt: "2026-07-23T17:40:00Z",
+    author: {
+      name: "Brasfield & Gorrie",
+      handle: "bgcorp",
+      role: "Corporate Communications",
+      office: "Birmingham",
+      initials: "BG",
+      verified: true,
+      avatarUrl:
+        "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=128&h=128&fit=crop",
+    },
+    headline: "Q3 safety milestone",
+    body: "Proud of our field teams — TRIR improved another 12% quarter-over-quarter. Every observation logged in Magnus feeds the same playbook. Keep looking out for each other.",
+    tags: ["Safety", "Field"],
+    reactions: [
+      { type: "like", count: 148, active: false },
+      { type: "insight", count: 32 },
+      { type: "bookmark", count: 19 },
+    ],
+    comments: 4,
+    shares: 11,
+    commentList: [
+      {
+        id: "fc-1a",
+        postId: "fp-1",
+        author: {
+          name: "Derek Walsh",
+          handle: "dwalsh",
+          role: "Superintendent",
+          office: "Nashville",
+          initials: "DW",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Night shift will run the same checklist. Solid progress from the field teams.",
+        createdAt: "2026-07-23T18:05:00Z",
+      },
+      {
+        id: "fc-1a-r1",
+        postId: "fp-1",
+        parentId: "fc-1a",
+        author: {
+          name: "Maya Chen",
+          handle: "mchen",
+          role: "Senior PM",
+          office: "Atlanta",
+          initials: "MC",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Thanks Derek — attaching the morning huddle photo from Atlanta.",
+        createdAt: "2026-07-23T18:12:00Z",
+        media: {
+          kind: "image",
+          src: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=640&h=400&fit=crop",
+          alt: "Field team huddle",
+        },
+      },
+      {
+        id: "fc-1b",
+        postId: "fp-1",
+        author: {
+          name: "Maya Chen",
+          handle: "mchen",
+          role: "Senior PM",
+          office: "Atlanta",
+          initials: "MC",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Sharing with the tower crew this afternoon — great leadership message.",
+        createdAt: "2026-07-23T18:20:00Z",
+      },
+      {
+        id: "fc-1c",
+        postId: "fp-1",
+        author: {
+          name: "James Courson",
+          handle: "jcourson",
+          role: "Innovation Manager",
+          office: "Birmingham",
+          initials: "JC",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Magnus observations are feeding the playbook cleanly. Keep logging.",
+        createdAt: "2026-07-23T18:35:00Z",
+      },
+    ],
+  },
+  {
+    id: "fp-2",
+    category: "project",
+    createdAt: "2026-07-23T15:10:00Z",
+    author: {
+      name: "Maya Chen",
+      handle: "mchen",
+      role: "Senior PM",
+      office: "Atlanta",
+      initials: "MC",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=128&h=128&fit=crop&crop=faces",
+    },
+    headline: "Downtown tower — week 28",
+    body: "Envelope package cleared AE comments this morning. Crane picks shift to the north laydown Friday 6–9 AM. Logistics map is in Workspaces if your trade is affected.",
+    tags: ["Project", "Logistics"],
+    media: {
+      kind: "image",
+      src: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=960&h=540&fit=crop",
+      alt: "High-rise construction site at sunrise",
+    },
+    reactions: [
+      { type: "like", count: 86 },
+      { type: "insight", count: 14 },
+      { type: "bookmark", count: 22 },
+    ],
+    comments: 2,
+    shares: 6,
+    commentList: [
+      {
+        id: "fc-2a",
+        postId: "fp-2",
+        author: {
+          name: "Derek Walsh",
+          handle: "dwalsh",
+          initials: "DW",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "North laydown confirmed. I'll post the flagger plan tomorrow morning.",
+        createdAt: "2026-07-23T15:45:00Z",
+      },
+      {
+        id: "fc-2b",
+        postId: "fp-2",
+        author: {
+          name: "Robert Courson",
+          handle: "rcourson",
+          initials: "RC",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Workspace map looks good — looping estimating on long-lead notes.",
+        createdAt: "2026-07-23T16:10:00Z",
+      },
+    ],
+  },
+  {
+    id: "fp-3",
+    category: "people",
+    createdAt: "2026-07-23T12:05:00Z",
+    author: {
+      name: "James Courson",
+      handle: "jcourson",
+      role: "Innovation Manager",
+      office: "Birmingham",
+      initials: "JC",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=128&h=128&fit=crop&crop=faces",
+    },
+    body: "Office hours this Thursday after 10:15 AM if you want to jam on Magnus workflows or agent skills for your project team. Drop a note — calendar is light.",
+    tags: ["Innovation", "Magnus"],
+    reactions: [
+      { type: "like", count: 54, active: true },
+      { type: "insight", count: 9 },
+      { type: "bookmark", count: 7 },
+    ],
+    comments: 3,
+    shares: 3,
+    commentList: [
+      {
+        id: "fc-3a",
+        postId: "fp-3",
+        author: {
+          name: "Evan Brooks",
+          handle: "ebrooks",
+          role: "IT Support",
+          office: "Birmingham",
+          initials: "EB",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1463453091185-61582044d556?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Bringing two new supers from the Mid-South cohort — they need VPN + Magnus access sorted first.",
+        createdAt: "2026-07-23T12:40:00Z",
+      },
+      {
+        id: "fc-3b",
+        postId: "fp-3",
+        author: {
+          name: "Lena Ortiz",
+          handle: "lortiz",
+          role: "Project Engineer",
+          office: "Atlanta",
+          initials: "LO",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=256&h=256&fit=crop&crop=faces",
+        },
+        body: "Can we cover @magnus in-channel for RFIs? ATL crew asks about that weekly.",
+        createdAt: "2026-07-23T13:05:00Z",
+      },
+      {
+        id: "fc-3b-r1",
+        postId: "fp-3",
+        parentId: "fc-3b",
+        author: {
+          name: "James Courson",
+          handle: "jcourson",
+          role: "Innovation Manager",
+          office: "Birmingham",
+          initials: "JC",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Yes — live demo in #downtown-tower. Bring a real RFI if you have one.",
+        createdAt: "2026-07-23T13:22:00Z",
+      },
+    ],
+  },
+  {
+    id: "fp-4",
+    category: "safety",
+    createdAt: "2026-07-22T21:30:00Z",
+    author: {
+      name: "Safety Ops",
+      handle: "safety",
+      role: "EH&S",
+      office: "Enterprise",
+      initials: "SO",
+      verified: true,
+      avatarUrl:
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=128&h=128&fit=crop&crop=faces",
+    },
+    headline: "Toolbox talk of the week",
+    body: "Fall protection refresh is live in Magnus — 5-minute version for morning huddles, plus the Spanish notes pack. Use /safety in chat to pull it on site.",
+    tags: ["Safety", "Toolbox"],
+    reactions: [
+      { type: "like", count: 201 },
+      { type: "insight", count: 41 },
+      { type: "bookmark", count: 63 },
+    ],
+    comments: 3,
+    shares: 45,
+    commentList: [
+      {
+        id: "fc-4a",
+        postId: "fp-4",
+        author: {
+          name: "Tom Hale",
+          handle: "thale",
+          role: "Superintendent",
+          office: "Birmingham",
+          initials: "TH",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Running EN + Spanish at 6:15 AM huddle. Crew liked the shorter format.",
+        createdAt: "2026-07-23T06:40:00Z",
+      },
+      {
+        id: "fc-4b",
+        postId: "fp-4",
+        author: {
+          name: "Chris Delgado",
+          handle: "cdelgado",
+          role: "Field Engineer",
+          office: "Nashville",
+          initials: "CD",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Printed laminated cards for the trailer board — works offline.",
+        createdAt: "2026-07-23T08:15:00Z",
+      },
+      {
+        id: "fc-4b-r1",
+        postId: "fp-4",
+        parentId: "fc-4b",
+        author: {
+          name: "Safety Ops",
+          handle: "safety",
+          role: "EH&S",
+          office: "Enterprise",
+          initials: "SO",
+          verified: true,
+          avatarUrl:
+            "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Nice — send a photo and we'll add to the enterprise pack.",
+        createdAt: "2026-07-23T09:02:00Z",
+      },
+    ],
+  },
+  {
+    id: "fp-5",
+    category: "insight",
+    createdAt: "2026-07-22T16:00:00Z",
+    author: {
+      name: "Magnus",
+      handle: "magnus",
+      role: "AI Assistant",
+      office: "B&G",
+      initials: "M",
+      verified: true,
+    },
+    headline: "Weekly risk digest · Q2 schedules",
+    body: "Three critical risks clustering around long-lead switchgear and foundation RFIs. I’ve queued a draft risk-register email if PMs want it before Friday’s look-ahead.",
+    tags: ["Magnus", "Risk"],
+    media: {
+      kind: "link",
+      url: "#",
+      title: "Open risk digest in chat",
+      domain: "magnus.internal",
+      imageUrl: "/og.png",
+    },
+    reactions: [
+      { type: "like", count: 73 },
+      { type: "insight", count: 28 },
+      { type: "bookmark", count: 31 },
+    ],
+    comments: 9,
+    shares: 14,
+  },
+  {
+    id: "fp-6",
+    category: "project",
+    createdAt: "2026-07-21T19:20:00Z",
+    author: {
+      name: "Derek Walsh",
+      handle: "dwalsh",
+      role: "Superintendent",
+      office: "Nashville",
+      initials: "DW",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=128&h=128&fit=crop&crop=faces",
+    },
+    body: "Concrete pour on Level 3 complete — thank you night shift. Photos and QA checklist are uploaded. Next window weather-dependent Tuesday.",
+    tags: ["Field", "Concrete"],
+    media: {
+      kind: "image",
+      src: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=960&h=540&fit=crop",
+      alt: "Concrete pour on a multi-story structure",
+    },
+    reactions: [
+      { type: "like", count: 112 },
+      { type: "insight", count: 6 },
+      { type: "bookmark", count: 8 },
+    ],
+    comments: 19,
+    shares: 4,
+  },
+  {
+    id: "fp-7",
+    category: "company",
+    createdAt: "2026-07-21T14:00:00Z",
+    author: {
+      name: "People & Culture",
+      handle: "people",
+      role: "HR",
+      office: "Enterprise",
+      initials: "PC",
+      verified: true,
+    },
+    headline: "Magnus onboarding cohort",
+    body: "New hires this month get a Day-1 Magnus walkthrough. Mentors: claim a buddy slot before Friday so we can pair project-side champions.",
+    tags: ["People", "Onboarding"],
+    reactions: [
+      { type: "like", count: 67 },
+      { type: "insight", count: 11 },
+      { type: "bookmark", count: 15 },
+    ],
+    comments: 8,
+    shares: 5,
+  },
+  {
+    id: "fp-8",
+    category: "insight",
+    createdAt: "2026-07-20T18:45:00Z",
+    author: {
+      name: "Priya Nair",
+      handle: "pnair",
+      role: "Estimating Lead",
+      office: "Charlotte",
+      initials: "PN",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=128&h=128&fit=crop&crop=faces",
+    },
+    body: "Shared a cleaner submittal SLA cheat sheet in B&G Knowledge. Search “submittal review SLA” — 10 business days standard, 15 engineered. Link also works from Magnus slash commands.",
+    tags: ["Knowledge", "Submittals"],
+    reactions: [
+      { type: "like", count: 94 },
+      { type: "insight", count: 22 },
+      { type: "bookmark", count: 48 },
+    ],
+    comments: 2,
+    shares: 21,
+    commentList: [
+      {
+        id: "fc-8a",
+        postId: "fp-8",
+        author: {
+          name: "Nina Patel",
+          handle: "npatel",
+          role: "Procurement",
+          office: "Charlotte",
+          initials: "NP",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Pinned this for vendor outreach — stamps are the bottleneck again.",
+        createdAt: "2026-07-20T19:10:00Z",
+      },
+      {
+        id: "fc-8b",
+        postId: "fp-8",
+        author: {
+          name: "Aisha Rahman",
+          handle: "arahman",
+          role: "QA/QC Lead",
+          office: "Charlotte",
+          initials: "AR",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "QA will reference the same SLA in closeout packs. Thanks Priya.",
+        createdAt: "2026-07-20T20:00:00Z",
+      },
+    ],
+  },
+  {
+    id: "fp-9",
+    category: "project",
+    createdAt: "2026-07-23T10:20:00Z",
+    author: {
+      name: "Sofia Kim",
+      handle: "skim",
+      role: "VDC Manager",
+      office: "Atlanta",
+      initials: "SK",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=128&h=128&fit=crop&crop=faces",
+    },
+    headline: "Clash report · Level 3 MEP",
+    body: "Latest federated model dropped 14 open clashes (duct vs. structure). Priority list is in Workspaces · Downtown tower. Field tablets get the simplified view tonight.",
+    tags: ["VDC", "MEP"],
+    media: {
+      kind: "image",
+      src: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=960&h=540&fit=crop",
+      alt: "Construction coordination drawings",
+    },
+    reactions: [
+      { type: "like", count: 41 },
+      { type: "insight", count: 18 },
+      { type: "bookmark", count: 12 },
+    ],
+    comments: 3,
+    shares: 7,
+    commentList: [
+      {
+        id: "fc-9a",
+        postId: "fp-9",
+        author: {
+          name: "Marcus Webb",
+          handle: "mwebb",
+          role: "MEP Coordinator",
+          office: "Nashville",
+          initials: "MW",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Taking the top five for Friday coordination. Thanks Sofia.",
+        createdAt: "2026-07-23T10:55:00Z",
+      },
+      {
+        id: "fc-9b",
+        postId: "fp-9",
+        author: {
+          name: "Lena Ortiz",
+          handle: "lortiz",
+          role: "Project Engineer",
+          office: "Atlanta",
+          initials: "LO",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=256&h=256&fit=crop&crop=faces",
+        },
+        body: "RFI draft ready if we need structure to move a beam pocket.",
+        createdAt: "2026-07-23T11:20:00Z",
+      },
+      {
+        id: "fc-9b-r1",
+        postId: "fp-9",
+        parentId: "fc-9b",
+        author: {
+          name: "Maya Chen",
+          handle: "mchen",
+          role: "Senior PM",
+          office: "Atlanta",
+          initials: "MC",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Hold the RFI until after Friday’s walk — might clear in-field.",
+        createdAt: "2026-07-23T11:35:00Z",
+      },
+    ],
+  },
+  {
+    id: "fp-10",
+    category: "people",
+    createdAt: "2026-07-22T14:30:00Z",
+    author: {
+      name: "Tom Hale",
+      handle: "thale",
+      role: "Superintendent",
+      office: "Birmingham",
+      initials: "TH",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=128&h=128&fit=crop&crop=faces",
+    },
+    body: "Welcome to the Mid-South crew rotating through HQ this week. Find me or Derek if you need laydown keys or night-shift radio channels.",
+    tags: ["People", "Field"],
+    reactions: [
+      { type: "like", count: 38 },
+      { type: "insight", count: 4 },
+      { type: "bookmark", count: 2 },
+    ],
+    comments: 2,
+    shares: 1,
+    commentList: [
+      {
+        id: "fc-10a",
+        postId: "fp-10",
+        author: {
+          name: "Chris Delgado",
+          handle: "cdelgado",
+          role: "Field Engineer",
+          office: "Nashville",
+          initials: "CD",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Already logged in — radio channel map is in the trailer binder.",
+        createdAt: "2026-07-22T15:00:00Z",
+      },
+      {
+        id: "fc-10b",
+        postId: "fp-10",
+        author: {
+          name: "Evan Brooks",
+          handle: "ebrooks",
+          role: "IT Support",
+          office: "Birmingham",
+          initials: "EB",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1463453091185-61582044d556?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Tablets staged at the 4B dock — stop by if your badge doesn’t open the cage.",
+        createdAt: "2026-07-22T15:40:00Z",
+      },
+    ],
+  },
+  {
+    id: "fp-11",
+    category: "company",
+    createdAt: "2026-07-21T09:00:00Z",
+    author: {
+      name: "Brasfield & Gorrie",
+      handle: "bgcorp",
+      role: "Corporate Communications",
+      office: "Birmingham",
+      initials: "BG",
+      verified: true,
+      avatarUrl:
+        "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=128&h=128&fit=crop",
+    },
+    headline: "Open enrollment reminder",
+    body: "Benefits window closes Friday EOD. Benefits portal link is on Home · Action tiles. Questions go to People & Culture, not your project channel.",
+    tags: ["People", "Benefits"],
+    reactions: [
+      { type: "like", count: 29 },
+      { type: "insight", count: 3 },
+      { type: "bookmark", count: 11 },
+    ],
+    comments: 1,
+    shares: 8,
+    commentList: [
+      {
+        id: "fc-11a",
+        postId: "fp-11",
+        author: {
+          name: "People & Culture",
+          handle: "people",
+          role: "HR",
+          office: "Enterprise",
+          initials: "PC",
+          verified: true,
+        },
+        body: "Drop-in Zoom hours tomorrow 12–1 CT if you need help comparing plans.",
+        createdAt: "2026-07-21T10:15:00Z",
+      },
+    ],
+  },
+  {
+    id: "fp-12",
+    category: "safety",
+    createdAt: "2026-07-20T13:00:00Z",
+    author: {
+      name: "Aisha Rahman",
+      handle: "arahman",
+      role: "QA/QC Lead",
+      office: "Charlotte",
+      initials: "AR",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=128&h=128&fit=crop&crop=faces",
+    },
+    headline: "Pour deck inspection window",
+    body: "Carolinas crews: pre-pour QA checklist is required 90 minutes before trucks. Photos of edge protection and embeds go in the observation log — same path as EH&S.",
+    tags: ["Safety", "QA"],
+    media: {
+      kind: "image",
+      src: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=960&h=540&fit=crop",
+      alt: "Jobsite safety walk",
+    },
+    reactions: [
+      { type: "like", count: 56 },
+      { type: "insight", count: 15 },
+      { type: "bookmark", count: 20 },
+    ],
+    comments: 2,
+    shares: 9,
+    commentList: [
+      {
+        id: "fc-12a",
+        postId: "fp-12",
+        author: {
+          name: "Derek Walsh",
+          handle: "dwalsh",
+          role: "Superintendent",
+          office: "Nashville",
+          initials: "DW",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Aligns with what we run in NSH — good standard.",
+        createdAt: "2026-07-20T14:20:00Z",
+      },
+      {
+        id: "fc-12a-r1",
+        postId: "fp-12",
+        parentId: "fc-12a",
+        author: {
+          name: "Safety Ops",
+          handle: "safety",
+          role: "EH&S",
+          office: "Enterprise",
+          initials: "SO",
+          verified: true,
+          avatarUrl:
+            "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "We'll mirror this in the enterprise checklist next release.",
+        createdAt: "2026-07-20T15:05:00Z",
+      },
+    ],
+  },
+  {
+    id: "fp-13",
+    category: "insight",
+    createdAt: "2026-07-19T17:00:00Z",
+    author: {
+      name: "Nina Patel",
+      handle: "npatel",
+      role: "Procurement",
+      office: "Charlotte",
+      initials: "NP",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=128&h=128&fit=crop&crop=faces",
+    },
+    body: "Two Carolinas stamp packages still open. Magnus draft nudge is in #estimating if you need language. Target EOD Thursday.",
+    tags: ["Procurement", "Estimating"],
+    reactions: [
+      { type: "like", count: 22 },
+      { type: "insight", count: 8 },
+      { type: "bookmark", count: 5 },
+    ],
+    comments: 1,
+    shares: 4,
+    commentList: [
+      {
+        id: "fc-13a",
+        postId: "fp-13",
+        author: {
+          name: "Priya Nair",
+          handle: "pnair",
+          role: "Estimating Lead",
+          office: "Charlotte",
+          initials: "PN",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Already in flight — thanks for the ping on the feed.",
+        createdAt: "2026-07-19T17:30:00Z",
+      },
+    ],
+  },
+  {
+    id: "fp-14",
+    category: "project",
+    createdAt: "2026-07-19T11:30:00Z",
+    author: {
+      name: "Marcus Webb",
+      handle: "mwebb",
+      role: "MEP Coordinator",
+      office: "Nashville",
+      initials: "MW",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=128&h=128&fit=crop&crop=faces",
+    },
+    headline: "Switchgear delivery window",
+    body: "Long-lead switchgear ETA slipped three days. Updated look-ahead is in Workspaces · Nashville Level 3. No re-route of temp power yet — watching weather for set day.",
+    tags: ["MEP", "Logistics"],
+    reactions: [
+      { type: "like", count: 33 },
+      { type: "insight", count: 12 },
+      { type: "bookmark", count: 9 },
+    ],
+    comments: 2,
+    shares: 3,
+    commentList: [
+      {
+        id: "fc-14a",
+        postId: "fp-14",
+        author: {
+          name: "Derek Walsh",
+          handle: "dwalsh",
+          role: "Superintendent",
+          office: "Nashville",
+          initials: "DW",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Keep temp power clear of the crane path either way.",
+        createdAt: "2026-07-19T12:00:00Z",
+      },
+      {
+        id: "fc-14b",
+        postId: "fp-14",
+        author: {
+          name: "Chris Delgado",
+          handle: "cdelgado",
+          role: "Field Engineer",
+          office: "Nashville",
+          initials: "CD",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Updated the trailer board sequence this morning.",
+        createdAt: "2026-07-19T12:45:00Z",
+      },
+    ],
+  },
+  {
+    id: "fp-15",
+    category: "project",
+    createdAt: "2026-07-23T09:50:00Z",
+    author: {
+      name: "Jordan Lee",
+      handle: "jlee",
+      role: "Scheduler",
+      office: "Dallas",
+      initials: "JL",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=128&h=128&fit=crop&crop=faces",
+    },
+    headline: "Dallas Midtown — look-ahead freeze",
+    body: "Three-week look-ahead is frozen for Dallas Midtown. Constraints from MEP and façade are tagged in the workspace. Supers: flag anything that breaks the Friday pick plan before standup.",
+    tags: ["Schedule", "Dallas"],
+    media: {
+      kind: "image",
+      src: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=960&h=540&fit=crop",
+      alt: "Construction schedule board",
+    },
+    reactions: [
+      { type: "like", count: 41 },
+      { type: "insight", count: 14 },
+      { type: "bookmark", count: 11 },
+    ],
+    comments: 3,
+    shares: 5,
+    commentList: [
+      {
+        id: "fc-15a",
+        postId: "fp-15",
+        author: {
+          name: "Maya Chen",
+          handle: "mchen",
+          role: "Senior PM",
+          office: "Atlanta",
+          initials: "MC",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Borrowing your freeze language for ATL tower next week — clean format.",
+        createdAt: "2026-07-23T10:10:00Z",
+      },
+      {
+        id: "fc-15b",
+        postId: "fp-15",
+        author: {
+          name: "Kevin Okafor",
+          handle: "kokafor",
+          role: "Cost Engineer",
+          office: "Birmingham",
+          initials: "KO",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Any weather float left on the façade constraint?",
+        createdAt: "2026-07-23T10:25:00Z",
+      },
+      {
+        id: "fc-15b-r1",
+        postId: "fp-15",
+        parentId: "fc-15b",
+        author: {
+          name: "Jordan Lee",
+          handle: "jlee",
+          role: "Scheduler",
+          office: "Dallas",
+          initials: "JL",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Two days — noted in the risk column of the look-ahead PDF.",
+        createdAt: "2026-07-23T10:40:00Z",
+      },
+    ],
+  },
+  {
+    id: "fp-16",
+    category: "safety",
+    createdAt: "2026-07-23T08:15:00Z",
+    author: {
+      name: "Rachel Nguyen",
+      handle: "rnguyen",
+      role: "Safety Manager",
+      office: "Houston",
+      initials: "RN",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=128&h=128&fit=crop&crop=faces",
+    },
+    headline: "Bilingual toolbox — night shift",
+    body: "EN + Spanish fall-protection toolbox deck is ready for Houston Med Center night shift. Print packs are in the trailer; digital deck lives in Workspaces · Enterprise EH&S.",
+    tags: ["Safety", "Toolbox"],
+    reactions: [
+      { type: "like", count: 67 },
+      { type: "insight", count: 21 },
+      { type: "bookmark", count: 28 },
+    ],
+    comments: 2,
+    shares: 9,
+    commentList: [
+      {
+        id: "fc-16a",
+        postId: "fp-16",
+        author: {
+          name: "Safety Ops",
+          handle: "safety",
+          role: "EH&S",
+          office: "Enterprise",
+          initials: "SO",
+          verified: true,
+          avatarUrl:
+            "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Adding this to the enterprise rotation template — great bilingual coverage.",
+        createdAt: "2026-07-23T08:45:00Z",
+      },
+      {
+        id: "fc-16a-r1",
+        postId: "fp-16",
+        parentId: "fc-16a",
+        author: {
+          name: "Derek Walsh",
+          handle: "dwalsh",
+          role: "Superintendent",
+          office: "Nashville",
+          initials: "DW",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "NSH will run the same deck Friday — thanks Rachel.",
+        createdAt: "2026-07-23T09:05:00Z",
+      },
+    ],
+  },
+  {
+    id: "fp-17",
+    category: "people",
+    createdAt: "2026-07-22T15:00:00Z",
+    author: {
+      name: "Hannah Berg",
+      handle: "hberg",
+      role: "HR Partner",
+      office: "Charlotte",
+      initials: "HB",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=128&h=128&fit=crop&crop=faces",
+    },
+    headline: "Craft recruiting open house",
+    body: "Carolinas craft open house is next Wednesday 4–7 PM. Bring a friend who wants to join self-perform. Snacks, benefits overview, and a short Magnus intro from James.",
+    tags: ["People", "Recruiting"],
+    reactions: [
+      { type: "like", count: 54 },
+      { type: "insight", count: 6 },
+      { type: "bookmark", count: 12 },
+    ],
+    comments: 2,
+    shares: 14,
+    commentList: [
+      {
+        id: "fc-17a",
+        postId: "fp-17",
+        author: {
+          name: "James Courson",
+          handle: "jcourson",
+          role: "Innovation Manager",
+          office: "Birmingham",
+          initials: "JC",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "I'll demo Catch me up in under five minutes — keep it practical.",
+        createdAt: "2026-07-22T15:20:00Z",
+      },
+      {
+        id: "fc-17b",
+        postId: "fp-17",
+        author: {
+          name: "Priya Nair",
+          handle: "pnair",
+          role: "Estimating Lead",
+          office: "Charlotte",
+          initials: "PN",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Estimating interns welcome — I'll staff a table.",
+        createdAt: "2026-07-22T16:00:00Z",
+      },
+    ],
+  },
+  {
+    id: "fp-18",
+    category: "company",
+    createdAt: "2026-07-21T13:00:00Z",
+    author: {
+      name: "Brasfield & Gorrie",
+      handle: "bgcorp",
+      role: "Corporate Communications",
+      office: "Birmingham",
+      initials: "BG",
+      verified: true,
+      avatarUrl:
+        "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=128&h=128&fit=crop",
+    },
+    headline: "Benefits enrollment reminder",
+    body: "Open enrollment closes Friday. HR partners are hosting drop-in hours in each office. Questions on craft benefits? Tag Hannah or your regional partner.",
+    tags: ["Company", "Benefits"],
+    reactions: [
+      { type: "like", count: 89 },
+      { type: "insight", count: 4 },
+      { type: "bookmark", count: 31 },
+    ],
+    comments: 1,
+    shares: 22,
+    commentList: [
+      {
+        id: "fc-18a",
+        postId: "fp-18",
+        author: {
+          name: "Hannah Berg",
+          handle: "hberg",
+          role: "HR Partner",
+          office: "Charlotte",
+          initials: "HB",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Charlotte drop-in is Thu 11–1 in the lobby conference room.",
+        createdAt: "2026-07-21T13:30:00Z",
+      },
+    ],
+  },
+];
+
+export const feedCategories = [
+  { id: "all" as const, label: "All" },
+  { id: "company" as const, label: "Company" },
+  { id: "project" as const, label: "Projects" },
+  { id: "safety" as const, label: "Safety" },
+  { id: "people" as const, label: "People" },
+  { id: "insight" as const, label: "Insights" },
+];

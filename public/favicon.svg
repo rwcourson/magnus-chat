@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Magnus">
+  <style>
+    .mark { fill: #0a0f1a; }
+    @media (prefers-color-scheme: dark) {
+      .mark { fill: #ffffff; }
+    }
+  </style>
+  <!-- Simplified Magnus “m” mark as monochrome silhouette (matches product logo silhouette) -->
+  <path
+    class="mark"
+    d="M12 48V16.5h7.2l8.4 19.8h.3L36.3 16.5H43.5V48h-6.2V28.2h-.2L30.3 48h-4.6L18.4 28.2h-.2V48H12zm32.2 0V16.5h6.2c6.8 0 11.2 3.7 11.2 9.6 0 4.4-2.3 7.4-6.1 8.7v.2c4.5 1.1 7.3 4.5 7.3 9.4 0 6.3-4.7 10.6-12.2 10.6h-6.4zm6.2-18.3h1.3c3.2 0 5.1-1.7 5.1-4.4s-1.8-4.3-5-4.3h-1.4v8.7zm0 13.3h1.6c3.7 0 5.9-1.9 5.9-4.9 0-2.9-2.1-4.6-5.7-4.6h-1.8v9.5z"
+  />
+</svg>
