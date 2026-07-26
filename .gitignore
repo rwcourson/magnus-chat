@@ -48,3 +48,4 @@ yarn-error.log*
 
 # scratch / local gen
 /tmp/
+.env*
