@@ -22,6 +22,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { Portal } from "@/components/ui/Portal";
+import { MagnusLogo } from "@/components/brand/MagnusLogo";
 import { useChat } from "@/context/ChatContext";
 import { useTheme } from "@/context/ThemeContext";
 import {
@@ -79,6 +80,8 @@ export function GlobalCommandPalette() {
     goHome,
     catchMeUp,
     selectChat,
+    setAppMode,
+    sendMessage,
     sidebarCollapsed,
     setSidebarCollapsed,
     setSidebarOpen,
@@ -204,10 +207,23 @@ export function GlobalCommandPalette() {
         case "shortcuts-help":
           setHelpOpen(true);
           break;
-        case "navigate":
-          if (cmd.href === "/") goHome();
-          if (cmd.href) router.push(cmd.href);
+        case "navigate": {
+          const href = cmd.href ?? "/";
+          if (href === "/") {
+            goHome();
+          } else if (
+            href.startsWith("/skills") ||
+            href.startsWith("/routines") ||
+            href.startsWith("/integrations") ||
+            href.startsWith("/workspaces") ||
+            href.startsWith("/approvals") ||
+            href.startsWith("/calendar")
+          ) {
+            setAppMode("chat");
+          }
+          router.push(href);
           break;
+        }
         case "select-chat":
           if (cmd.chatId) {
             selectChat(cmd.chatId);
@@ -224,6 +240,7 @@ export function GlobalCommandPalette() {
       pathname,
       router,
       selectChat,
+      setAppMode,
       setSidebarCollapsed,
       setSidebarOpen,
       sidebarCollapsed,
@@ -396,9 +413,32 @@ export function GlobalCommandPalette() {
                   className="scroll-thin max-h-[min(52vh,380px)] overflow-y-auto p-1.5"
                 >
                   {flat.length === 0 && (
-                    <p className="px-3 py-8 text-center text-[13px] text-[var(--text-muted)]">
-                      No matches for “{query}”
-                    </p>
+                    <div className="px-3 py-6 text-center" data-cmd-empty>
+                      <p className="text-[13px] text-[var(--text-muted)]">
+                        No matches for “{query}”
+                      </p>
+                      {query.trim() && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const q = query.trim();
+                            close();
+                            newChat();
+                            setAppMode("chat");
+                            if (pathname !== "/") router.push("/");
+                            window.setTimeout(() => sendMessage(q), 50);
+                          }}
+                          className={cn(
+                            "btn-primary mt-3 inline-flex items-center gap-1.5 rounded-full px-3.5 py-2",
+                            "text-[12.5px] font-semibold"
+                          )}
+                          data-cmd-ask-magnus
+                        >
+                          <MagnusLogo size={16} tone="white" />
+                          Ask Magnus
+                        </button>
+                      )}
+                    </div>
                   )}
                   {grouped.map(({ group, items }) => (
                     <div key={group} className="mb-1.5">

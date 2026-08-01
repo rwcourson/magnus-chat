@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
-  Magnus — mid-navy dark (TV-readable) + polished light
+  Themes: mid-navy dark (TV-readable), charcoal Magnus, polished light
   Flatmax: hierarchy via borders/fills, not drop shadows.
 */
 :root,
@@ -156,6 +156,166 @@ html[data-theme="dark"] {
   --bg-symbol-outline: rgba(255, 255, 255, 0.05);
 
   --header-bg: rgba(22, 30, 46, 0.88);
+  --header-border: rgba(255, 255, 255, 0.1);
+
+  --sidebar-width: 280px;
+  --sidebar-collapsed: 72px;
+  --composer-max: 720px;
+
+  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 160ms;
+  --duration: 240ms;
+  --duration-slow: 360ms;
+}
+
+/* ── Magnus — monochrome charcoal (#2c2c2c / #222222) ── */
+html[data-theme="magnus"] {
+  /* Canvas — user anchors: canvas #2c2c2c, deep #222222 */
+  --bg-deep: #222222;
+  --bg-canvas: #2c2c2c;
+  --bg-elevated: #363636;
+
+  /*
+   * Accent — ice cyan #47ffff, kept intentionally quiet.
+   * Full strength is for logo + rare icon hits only.
+   * Soft/ring stay low-alpha so focus chrome doesn’t neon-out.
+   */
+  --accent: #47ffff;
+  --accent-bright: #6dffff;
+  --accent-deep: #2bb8b8;
+  --accent-soft: rgba(71, 255, 255, 0.1);
+  --accent-glow: rgba(71, 255, 255, 0.12);
+  --accent-ring: rgba(71, 255, 255, 0.2);
+
+  /* Legacy brand-* → restrained cyan (not full-blast fills) */
+  --brand-cyan: #47ffff;
+  --brand-cyan-soft: rgba(71, 255, 255, 0.1);
+  --brand-cyan-glow: rgba(71, 255, 255, 0.12);
+  --brand-cyan-muted: rgba(71, 255, 255, 0.55);
+  --brand-cyan-on: #222222;
+
+  /* Glass fills — charcoal stack */
+  --glass-fill: rgba(48, 48, 48, 0.94);
+  --glass-fill-strong: rgba(54, 54, 54, 0.97);
+  --glass-fill-sidebar: rgba(34, 34, 34, 0.98);
+  --glass-fill-composer: rgba(50, 50, 50, 0.96);
+  --glass-strong-solid: #3a3a3a;
+  --glass-tint: rgba(255, 255, 255, 0.04);
+
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-border-soft: rgba(255, 255, 255, 0.1);
+  --glass-border-strong: rgba(255, 255, 255, 0.18);
+  --glass-specular: rgba(255, 255, 255, 0.11);
+  --glass-specular-soft: rgba(255, 255, 255, 0.07);
+
+  /* Text — neutral white on charcoal */
+  --text-primary: #f5f5f5;
+  --text-secondary: #c4c4c4;
+  --text-muted: #969696;
+
+  --sidebar-text-primary: #f7f7f7;
+  --sidebar-text-secondary: #d0d0d0;
+  --sidebar-text-muted: #9e9e9e;
+
+  --hover-fill: rgba(255, 255, 255, 0.06);
+  --hover-fill-strong: rgba(255, 255, 255, 0.1);
+  --danger: #d0888c;
+
+  --select-fill: rgba(255, 255, 255, 0.12);
+  --select-fill-hover: rgba(255, 255, 255, 0.15);
+  --select-border: rgba(255, 255, 255, 0.2);
+  --select-text: #ffffff;
+  --select-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+
+  --pill-bg: color-mix(in srgb, var(--glass-strong-solid) 72%, transparent);
+  --pill-bg-hover: color-mix(in srgb, var(--glass-strong-solid) 88%, transparent);
+  --pill-border: var(--glass-border-soft);
+  --pill-border-hover: var(--glass-border);
+  --pill-fg: var(--text-secondary);
+  --pill-fg-hover: var(--text-primary);
+
+  /* Soft charcoal primary (parallel to dark soft navy) */
+  --btn-primary-bg: #4a4a4a;
+  --btn-primary-bg-hover: #5a5a5a;
+  --btn-primary-fg: #ffffff;
+  --btn-primary-border: rgba(255, 255, 255, 0.12);
+  --btn-primary-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.12) inset;
+  --btn-primary-sheen: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.12) 0%,
+    transparent 48%
+  );
+
+  /* Solid inverse CTA — white on charcoal */
+  --btn-solid-bg: #ffffff;
+  --btn-solid-bg-hover: #efefef;
+  --btn-solid-fg: #222222;
+  --btn-solid-border: rgba(255, 255, 255, 0.9);
+  --btn-solid-shadow: none;
+
+  --shadow-xs: none;
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --shadow-xl: none;
+  --shadow-sidebar: none;
+  --shadow-composer:
+    0 1px 0 0 rgba(255, 255, 255, 0.08) inset;
+  --shadow-composer-focus:
+    0 1px 0 0 var(--glass-specular-soft) inset,
+    0 0 0 3px var(--accent-soft);
+  --shadow-glass:
+    0 1px 0 0 var(--glass-specular-soft) inset;
+  --shadow-menu:
+    0 1px 0 0 var(--glass-specular-soft) inset;
+
+  --inset-highlight: rgba(255, 255, 255, 0.06);
+  --inset-depth: rgba(0, 0, 0, 0.22);
+  --sidebar-sheen: rgba(255, 255, 255, 0.03);
+  --noise-opacity: 0.026;
+  --noise-blend: overlay;
+
+  --scroll-thumb: rgba(255, 255, 255, 0.12);
+  --scroll-thumb-hover: rgba(255, 255, 255, 0.2);
+  --selection-bg: rgba(255, 255, 255, 0.2);
+  --selection-fg: #fff;
+
+  --bubble-assistant-bg: var(--glass-fill-composer);
+  --bubble-assistant-border: var(--glass-border);
+  --bubble-user-bg: rgba(255, 255, 255, 0.1);
+  --bubble-user-border: var(--glass-border);
+
+  --chat-glass-bg: var(--glass-fill-composer);
+  --chat-glass-bg-hover: rgba(56, 56, 56, 0.98);
+  --chat-glass-bg-inset: rgba(255, 255, 255, 0.08);
+  --chat-glass-border: var(--glass-border);
+  --chat-glass-border-hover: var(--glass-border-strong);
+  --chat-glass-blur: 28px;
+
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --input-bg-focus: rgba(255, 255, 255, 0.08);
+  --input-border-focus: rgba(255, 255, 255, 0.16);
+  --input-ring: rgba(255, 255, 255, 0.08);
+
+  --link: #c0c0c0;
+  --link-hover: #e8e8e8;
+  --link-underline: rgba(192, 192, 192, 0.45);
+  --link-underline-hover: rgba(232, 232, 232, 0.8);
+
+  --wave-bar: 230, 230, 230;
+  --rec-idle: rgba(255, 255, 255, 0.32);
+
+  /* Whisper of cyan in the canvas — barely there */
+  --canvas-glow-1: rgba(71, 255, 255, 0.035);
+  --canvas-glow-2: rgba(71, 255, 255, 0.02);
+  --canvas-grad: linear-gradient(165deg, #2c2c2c 0%, #262626 48%, #222222 100%);
+  --logo-filter: none;
+  --logo-glow: rgba(71, 255, 255, 0.14);
+  --bg-symbol-outline: rgba(255, 255, 255, 0.05);
+
+  --header-bg: rgba(34, 34, 34, 0.9);
   --header-border: rgba(255, 255, 255, 0.1);
 
   --sidebar-width: 280px;
@@ -563,6 +723,18 @@ body {
 }
 
 /*
+ * Company-room dock — same shape as chat, less transparent so feed media
+ * doesn’t compete with the input (still a touch of blur, not a flat slab).
+ */
+.glass-composer-solid {
+  background:
+    linear-gradient(165deg, var(--inset-highlight) 0%, transparent 40%),
+    color-mix(in srgb, var(--bg-elevated) 92%, var(--glass-fill-composer));
+  backdrop-filter: blur(20px) saturate(1.04);
+  -webkit-backdrop-filter: blur(20px) saturate(1.04);
+}
+
+/*
  * Chat frosted glass — same technique as .glass-composer (proven working):
  * translucent fill + backdrop-filter directly on the element.
  */
@@ -620,7 +792,8 @@ body {
  * Color: --scroll-fade-color (defaults to canvas). Size: --scroll-fade-size.
  */
 :root,
-html[data-theme="dark"] {
+html[data-theme="dark"],
+html[data-theme="magnus"] {
   --scroll-fade-color: var(--bg-canvas);
   --scroll-fade-size: 48px;
 }
@@ -634,6 +807,9 @@ html[data-theme="light"] {
 }
 html[data-theme="dark"] .glass-sidebar {
   --scroll-fade-color: #161e2e;
+}
+html[data-theme="magnus"] .glass-sidebar {
+  --scroll-fade-color: #222222;
 }
 html[data-theme="light"] .glass-sidebar {
   --scroll-fade-color: #f8f9fc;
@@ -836,24 +1012,35 @@ html[data-theme="light"] .glass-sidebar {
   box-shadow: 0 0 0 1px var(--glass-border-soft) inset;
 }
 
-/* Monochrome mark from blue PNG */
+/*
+ * Product mark — mask the PNG so each theme can set an exact fill color.
+ * (Filters can’t hit #47ffff reliably.)
+ */
+.logo-mark,
 .logo-mark-white,
-.logo-white {
-  /* Always pure white — empty state / dark canvas */
-  filter: brightness(0) invert(1);
+.logo-white,
+.logo-mark-navy,
+.logo-mark-sidebar {
+  display: inline-block;
+  background-color: #ffffff;
+  -webkit-mask: url("/logo.png") center / contain no-repeat;
+  mask: url("/logo.png") center / contain no-repeat;
 }
 .logo-mark-navy {
-  /* Always deep navy — light surfaces */
-  filter: brightness(0) invert(10%) sepia(45%) saturate(1600%) hue-rotate(195deg)
-    brightness(0.85) contrast(1.15);
+  background-color: #0c2048;
 }
-/* Sidebar: white on dark shell, navy on light shell */
+/* Sidebar: white on dark shell, navy on light, ice on Magnus */
 .logo-mark-sidebar {
-  filter: brightness(0) invert(1);
+  background-color: #ffffff;
 }
 html[data-theme="light"] .logo-mark-sidebar {
-  filter: brightness(0) invert(10%) sepia(45%) saturate(1600%) hue-rotate(195deg)
-    brightness(0.85) contrast(1.15);
+  background-color: #0c2048;
+}
+/* Magnus — exact #47ffff on product mark only */
+html[data-theme="magnus"] .logo-mark-white,
+html[data-theme="magnus"] .logo-white,
+html[data-theme="magnus"] .logo-mark-sidebar {
+  background-color: #47ffff;
 }
 
 .glass-input {

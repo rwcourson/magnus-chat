@@ -15,6 +15,10 @@ import { approvalItems } from "@/lib/approvals-data";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { PillAction } from "@/components/ui/PillAction";
 import { ScrollFade } from "@/components/ui/ScrollFade";
+import {
+  CatalogSearch,
+  matchesCatalogQuery,
+} from "@/components/ui/CatalogSearch";
 import { useToast } from "@/context/ToastContext";
 import { cn } from "@/lib/utils";
 import { easeSpring } from "@/lib/motion";
@@ -63,6 +67,7 @@ export function ApprovalsView() {
   const idParam = searchParams.get("id");
 
   const [items, setItems] = useState<ApprovalItem[]>(approvalItems);
+  const [query, setQuery] = useState("");
   const [source, setSource] = useState<SourceFilter>(
     sourceParam && SOURCE_TABS.some((t) => t.id === sourceParam)
       ? sourceParam
@@ -70,6 +75,7 @@ export function ApprovalsView() {
   );
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("pending");
   const [selectedId, setSelectedId] = useState<string | null>(idParam);
+  const q = query.trim().toLowerCase();
 
   useEffect(() => {
     if (sourceParam && SOURCE_TABS.some((t) => t.id === sourceParam)) {
@@ -94,9 +100,21 @@ export function ApprovalsView() {
       if (source !== "all" && item.sourceKey !== source) return false;
       if (statusFilter === "pending" && item.status !== "pending") return false;
       if (statusFilter === "done" && item.status === "pending") return false;
-      return true;
+      return matchesCatalogQuery(
+        [
+          item.title,
+          item.subtitle,
+          item.detail,
+          item.source,
+          item.requester,
+          item.project,
+          item.amount,
+          KIND_LABEL[item.kind],
+        ],
+        q
+      );
     });
-  }, [items, source, statusFilter]);
+  }, [items, source, statusFilter, q]);
 
   const selected =
     filtered.find((i) => i.id === selectedId) ??
@@ -177,45 +195,55 @@ export function ApprovalsView() {
             )}
           </div>
 
-          <div className="mt-5 flex flex-wrap items-center gap-2">
-            {SOURCE_TABS.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setSourceFilter(tab.id)}
-                data-approvals-source={tab.id}
-                className={cn(
-                  "rounded-full px-3 py-1.5 text-[12.5px] font-medium transition-colors",
-                  source === tab.id
-                    ? "bg-[var(--select-fill)] text-[var(--text-primary)]"
-                    : "text-[var(--text-muted)] hover:bg-[var(--hover-fill)] hover:text-[var(--text-secondary)]"
-                )}
-              >
-                {tab.label}
-              </button>
-            ))}
-            <span className="mx-1 h-4 w-px bg-[var(--glass-border-soft)]" />
-            {(
-              [
-                ["pending", "Pending"],
-                ["done", "Done"],
-                ["all", "All"],
-              ] as const
-            ).map(([id, label]) => (
-              <button
-                key={id}
-                type="button"
-                onClick={() => setStatusFilter(id)}
-                className={cn(
-                  "rounded-full px-3 py-1.5 text-[12.5px] font-medium transition-colors",
-                  statusFilter === id
-                    ? "bg-[var(--select-fill)] text-[var(--text-primary)]"
-                    : "text-[var(--text-muted)] hover:bg-[var(--hover-fill)] hover:text-[var(--text-secondary)]"
-                )}
-              >
-                {label}
-              </button>
-            ))}
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <CatalogSearch
+              value={query}
+              onChange={setQuery}
+              placeholder="Search title, project, requester…"
+              aria-label="Search approvals"
+              className="sm:max-w-sm sm:flex-1"
+              data-testid="approvals-search"
+            />
+            <div className="flex flex-wrap items-center gap-2">
+              {SOURCE_TABS.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setSourceFilter(tab.id)}
+                  data-approvals-source={tab.id}
+                  className={cn(
+                    "rounded-full px-3 py-1.5 text-[12.5px] font-medium transition-colors",
+                    source === tab.id
+                      ? "bg-[var(--select-fill)] text-[var(--text-primary)]"
+                      : "text-[var(--text-muted)] hover:bg-[var(--hover-fill)] hover:text-[var(--text-secondary)]"
+                  )}
+                >
+                  {tab.label}
+                </button>
+              ))}
+              <span className="mx-1 h-4 w-px bg-[var(--glass-border-soft)]" />
+              {(
+                [
+                  ["pending", "Pending"],
+                  ["done", "Done"],
+                  ["all", "All"],
+                ] as const
+              ).map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setStatusFilter(id)}
+                  className={cn(
+                    "rounded-full px-3 py-1.5 text-[12.5px] font-medium transition-colors",
+                    statusFilter === id
+                      ? "bg-[var(--select-fill)] text-[var(--text-primary)]"
+                      : "text-[var(--text-muted)] hover:bg-[var(--hover-fill)] hover:text-[var(--text-secondary)]"
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,380px)]">

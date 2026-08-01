@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock3, Plus } from "lucide-react";
 import type { RoutineItem } from "@/types/catalog";
@@ -11,6 +11,10 @@ import {
 } from "@/lib/catalog-create";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { AvatarMark } from "@/components/ui/BrandMark";
+import {
+  CatalogSearch,
+  matchesCatalogQuery,
+} from "@/components/ui/CatalogSearch";
 import { useToast } from "@/context/ToastContext";
 import { cn } from "@/lib/utils";
 import { easeSpring } from "@/lib/motion";
@@ -24,12 +28,30 @@ export function RoutinesView({
 }) {
   const { toast } = useToast();
   const [list, setList] = useState<RoutineItem[]>(items);
+  const [query, setQuery] = useState("");
   const [activeMap, setActiveMap] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(items.map((r) => [r.id, r.active]))
   );
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState("");
   const [schedule, setSchedule] = useState("Weekdays · 7:00 AM");
+  const q = query.trim().toLowerCase();
+
+  const filtered = useMemo(
+    () =>
+      list.filter((routine) =>
+        matchesCatalogQuery(
+          [
+            routine.name,
+            routine.description,
+            routine.schedule,
+            routine.owner?.name,
+          ],
+          q
+        )
+      ),
+    [list, q]
+  );
 
   const openCreate = () => {
     setCreating(true);
@@ -47,6 +69,7 @@ export function RoutinesView({
     setActiveMap((p) => ({ ...p, [item.id]: true }));
     setCreating(false);
     setName("");
+    setQuery("");
     toast({
       title: "Routine added",
       description: item.name,
@@ -66,7 +89,7 @@ export function RoutinesView({
           <PageHeader
             eyebrow="Routines"
             icon={Clock3}
-            title="Automations on your schedule"
+            title="Routines on your schedule"
             description="Recurring prompts for standups, safety digests, and risk reviews — toggle on or off anytime."
             actions={
               <button
@@ -148,6 +171,17 @@ export function RoutinesView({
             )}
           </AnimatePresence>
 
+          {list.length > 0 && (
+            <CatalogSearch
+              value={query}
+              onChange={setQuery}
+              placeholder="Search routines, schedules, owners…"
+              aria-label="Search routines"
+              className="mb-4"
+              data-testid="routines-search"
+            />
+          )}
+
           {list.length === 0 ? (
             <div
               className="rounded-[20px] border border-dashed border-[var(--glass-border)] px-4 py-14 text-center"
@@ -165,6 +199,22 @@ export function RoutinesView({
                 Add routine
               </button>
             </div>
+          ) : filtered.length === 0 ? (
+            <div
+              className="rounded-[20px] border border-dashed border-[var(--glass-border)] px-4 py-12 text-center"
+              data-routines-empty
+            >
+              <p className="text-[13.5px] text-[var(--text-muted)]">
+                No routines match “{query.trim()}”
+              </p>
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="mt-3 rounded-full px-3 py-1.5 text-[12.5px] font-medium text-[var(--text-muted)] hover:bg-[var(--hover-fill)]"
+              >
+                Clear search
+              </button>
+            </div>
           ) : (
             <div
               className={cn(
@@ -173,9 +223,9 @@ export function RoutinesView({
               )}
               data-routines-list
             >
-              {list.map((routine, i) => {
+              {filtered.map((routine, i) => {
                 const on = activeMap[routine.id] ?? routine.active;
-                const isLast = i === list.length - 1;
+                const isLast = i === filtered.length - 1;
                 return (
                   <motion.article
                     key={routine.id}

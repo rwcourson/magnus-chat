@@ -7,12 +7,32 @@ export const currentUser: AppUser = {
   capabilities: ["insights"],
 };
 
+/**
+ * Re-apply seed-only meta (e.g. `private`) onto chats restored from localStorage.
+ * Only fills missing flags so an explicit user toggle to false is preserved.
+ */
+export function mergeSeedChatMeta(
+  saved: ChatThread[],
+  seed: ChatThread[] = initialChats
+): ChatThread[] {
+  const seedById = new Map(seed.map((c) => [c.id, c]));
+  return saved.map((c) => {
+    const s = seedById.get(c.id);
+    if (!s) return c;
+    if (s.private === true && typeof c.private !== "boolean") {
+      return { ...c, private: true };
+    }
+    return c;
+  });
+}
+
 export const initialChats: ChatThread[] = [
   {
     id: "cal-1",
     title: "James Courson availability",
     preview: "B&G calendar · Innovation Manager",
     updatedAt: "2026-07-23T18:30:00Z",
+    private: true,
     messages: [
       {
         id: "cal-u1",
@@ -593,6 +613,7 @@ export const initialChats: ChatThread[] = [
     title: "RFI response draft",
     preview: "Clear, contract-aware reply",
     updatedAt: "2026-07-12T15:00:00Z",
+    private: true,
     messages: [
       {
         id: "7-u1",
@@ -709,6 +730,7 @@ export const initialChats: ChatThread[] = [
     id: "9",
     title: "Change order summary",
     preview: "COR package for owner review",
+    private: true,
     updatedAt: "2026-07-08T17:20:00Z",
     messages: [
       {

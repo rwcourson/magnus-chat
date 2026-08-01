@@ -4,6 +4,7 @@
  */
 
 import type { RoutineItem, SkillItem, WorkspaceItem } from "@/types/catalog";
+import { upsertWorkspace } from "@/lib/catalog-data";
 import { currentUser } from "@/lib/mock-data";
 
 export type CreateRoutineInput = {
@@ -44,7 +45,7 @@ export function createRoutineItem(input: CreateRoutineInput): RoutineItem | null
   if (!name) return null;
   const description =
     input.description?.trim() ||
-    "Custom automation you added in the demo — runs on the schedule below.";
+    "Custom routine you added in the demo — runs on the schedule below.";
   const schedule = input.schedule?.trim() || "Weekdays · 7:00 AM";
   return {
     id: input.id ?? uid("routine"),
@@ -62,7 +63,7 @@ export function createRoutineItem(input: CreateRoutineInput): RoutineItem | null
   };
 }
 
-/** Build a workspace row from form fields (demo-local). */
+/** Build a workspace row from form fields (demo-local). Does not register. */
 export function createWorkspaceItem(
   input: CreateWorkspaceInput
 ): WorkspaceItem | null {
@@ -91,12 +92,35 @@ export function createWorkspaceItem(
       {
         name: currentUser.name,
         initials: currentUser.initials || initialsFromName(currentUser.name),
+        role: "Owner",
       },
     ],
     chats: 0,
     files: 0,
     updatedAt: new Date().toISOString(),
+    chatEntries: [],
+    fileEntries: [],
+    activity: [
+      {
+        id: `act-${Date.now()}`,
+        summary: `${currentUser.name} created this workspace`,
+        at: new Date().toISOString(),
+        actor: currentUser.name,
+      },
+    ],
   };
+}
+
+/**
+ * Create a workspace and write it into the shared registry so
+ * `/workspaces/[id]` can resolve it (list → detail path).
+ */
+export function createAndRegisterWorkspace(
+  input: CreateWorkspaceInput
+): WorkspaceItem | null {
+  const item = createWorkspaceItem(input);
+  if (!item) return null;
+  return upsertWorkspace(item);
 }
 
 /** Build a skill card from form fields (demo-local). */

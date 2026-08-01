@@ -1,13 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   X,
-  MessageCircle,
   History,
   ChevronLeft,
   SquarePen,
+  Maximize2,
 } from "lucide-react";
 import { MagnusLogo } from "@/components/brand/MagnusLogo";
 import { Composer } from "@/components/chat/Composer";
@@ -47,11 +48,14 @@ type PanelView = "chat" | "history";
  * Local thread for new messages; can load previous chats from global history.
  */
 export function MagnusChatPopup({ className }: { className?: string }) {
-  const { chats } = useChat();
+  const router = useRouter();
+  const { chats, upsertChat, newChat } = useChat();
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<PanelView>("chat");
   const [messages, setMessages] = useState<Message[]>([]);
   const [activeTitle, setActiveTitle] = useState<string | null>(null);
+  /** When set, popup is continuing a global history thread */
+  const [sourceChatId, setSourceChatId] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   /** Generation id — ignore stale stream results after a newer send */
   const genRef = useRef(0);
@@ -101,6 +105,7 @@ export function MagnusChatPopup({ className }: { className?: string }) {
   const startNewChat = useCallback(() => {
     setMessages([]);
     setActiveTitle(null);
+    setSourceChatId(null);
     setIsTyping(false);
     setView("chat");
   }, []);
@@ -108,9 +113,52 @@ export function MagnusChatPopup({ className }: { className?: string }) {
   const loadChat = useCallback((thread: ChatThread) => {
     setMessages(thread.messages.map((m) => ({ ...m })));
     setActiveTitle(thread.title);
+    setSourceChatId(thread.id);
     setIsTyping(false);
     setView("chat");
   }, []);
+
+  /** Promote popup conversation into the full Chat surface */
+  const openInFullChat = useCallback(() => {
+    if (messages.length === 0 && !sourceChatId) {
+      newChat();
+      closePanel();
+      router.push("/");
+      return;
+    }
+
+    const id = sourceChatId ?? uid("chat");
+    const lastAssistant = [...messages]
+      .reverse()
+      .find((m) => m.role === "assistant");
+    const title =
+      activeTitle ??
+      (messages[0]?.content
+        ? messages[0].content.length > 36
+          ? `${messages[0].content.slice(0, 34)}…`
+          : messages[0].content
+        : "Magnus");
+
+    const thread: ChatThread = {
+      id,
+      title,
+      updatedAt: new Date().toISOString(),
+      messages: messages.map((m) => ({ ...m })),
+      preview: lastAssistant?.content.slice(0, 80) || messages[0]?.content.slice(0, 80),
+    };
+
+    upsertChat(thread);
+    closePanel();
+    router.push(`/?chat=${encodeURIComponent(id)}`);
+  }, [
+    messages,
+    sourceChatId,
+    activeTitle,
+    upsertChat,
+    newChat,
+    closePanel,
+    router,
+  ]);
 
   const sendMessage = useCallback(
     (content: string) => {
@@ -285,19 +333,35 @@ export function MagnusChatPopup({ className }: { className?: string }) {
               </div>
 
               {view === "chat" && (
-                <button
-                  type="button"
-                  onClick={() => setView("history")}
-                  aria-label="See previous chats"
-                  title="See previous chats"
-                  className={cn(
-                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
-                    "text-[var(--text-muted)] transition-colors",
-                    "hover:bg-[var(--hover-fill)] hover:text-[var(--text-primary)]"
-                  )}
-                >
-                  <History className="h-4 w-4" strokeWidth={ICON_STROKE} />
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={openInFullChat}
+                    aria-label="Open in full chat"
+                    title="Open in full chat"
+                    className={cn(
+                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
+                      "text-[var(--text-muted)] transition-colors",
+                      "hover:bg-[var(--hover-fill)] hover:text-[var(--text-primary)]"
+                    )}
+                    data-open-full-chat
+                  >
+                    <Maximize2 className="h-4 w-4" strokeWidth={ICON_STROKE} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setView("history")}
+                    aria-label="See previous chats"
+                    title="See previous chats"
+                    className={cn(
+                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
+                      "text-[var(--text-muted)] transition-colors",
+                      "hover:bg-[var(--hover-fill)] hover:text-[var(--text-primary)]"
+                    )}
+                  >
+                    <History className="h-4 w-4" strokeWidth={ICON_STROKE} />
+                  </button>
+                </>
               )}
 
               <button
@@ -512,13 +576,6 @@ export function MagnusChatPopup({ className }: { className?: string }) {
         <span className="relative text-[13.5px] font-semibold tracking-tight">
           {open ? "Close" : "Ask Magnus"}
         </span>
-        {!open && (
-          <MessageCircle
-            className="relative h-3.5 w-3.5 opacity-45"
-            strokeWidth={ICON_STROKE}
-            aria-hidden
-          />
-        )}
       </motion.button>
     </div>
   );

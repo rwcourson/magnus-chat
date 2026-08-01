@@ -1,14 +1,13 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ImageIcon, Video, X } from "lucide-react";
+import { ArrowUp, ImageIcon, Video, X } from "lucide-react";
 import type { FeedCategory, FeedMedia, FeedPost } from "@/types/feed";
 import { createFeedPost } from "@/lib/feed";
-import { feedCategories } from "@/lib/feed-data";
 import { currentUser } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
-import { easeOut, easeSpring } from "@/lib/motion";
+import { easeSpring, pressPrimary, springSnappy } from "@/lib/motion";
 import { ICON_STROKE } from "@/lib/icons";
 
 const DEMO_IMAGE =
@@ -21,54 +20,69 @@ const DEMO_POSTER =
 const AVATAR_URL =
   "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=128&h=128&fit=crop&crop=faces";
 
-const categories = feedCategories.filter((c) => c.id !== "all") as {
-  id: FeedCategory;
-  label: string;
-}[];
+/** Soft intent chips — not social categories */
+const PROMPTS: { id: FeedCategory; label: string; starter: string }[] = [
+  { id: "people", label: "Win", starter: "Quick win: " },
+  { id: "safety", label: "Safety", starter: "Safety heads-up: " },
+  { id: "company", label: "Question", starter: "Question for the company: " },
+  { id: "project", label: "Looking for…", starter: "Looking for help with " },
+];
 
 interface FeedComposerProps {
   onSubmit: (post: FeedPost) => void;
   className?: string;
+  /** Floating dock at bottom of B&G Live (chat-area principles) */
+  docked?: boolean;
 }
 
 /**
- * Inline share strip → condensed X-style expand.
- * Body first; meta + media in one tight toolbar row.
+ * B&G Live share field.
+ * Docked mode matches main chat: glass-composer pill, no divider chrome, floating.
  */
-export function FeedComposer({ onSubmit, className }: FeedComposerProps) {
+export function FeedComposer({
+  onSubmit,
+  className,
+  docked = false,
+}: FeedComposerProps) {
   const titleId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const expandedRef = useRef(false);
 
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(docked);
   const [body, setBody] = useState("");
-  const [headline, setHeadline] = useState("");
   const [category, setCategory] = useState<FeedCategory>("company");
-  const [tagsRaw, setTagsRaw] = useState("");
   const [media, setMedia] = useState<FeedMedia | undefined>();
-  const [showTags, setShowTags] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   expandedRef.current = expanded;
+  const hasDraft = body.trim().length > 0 || Boolean(media);
+  const canSend = body.trim().length > 0 || Boolean(media);
 
-  const hasDraft =
-    body.trim().length > 0 ||
-    headline.trim().length > 0 ||
-    tagsRaw.trim().length > 0 ||
-    Boolean(media);
+  const resize = useCallback(() => {
+    const el = bodyRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 140)}px`;
+  }, []);
+
+  useEffect(() => {
+    resize();
+  }, [body, resize, expanded, docked]);
 
   const resetForm = () => {
     setBody("");
-    setHeadline("");
     setCategory("company");
-    setTagsRaw("");
     setMedia(undefined);
-    setShowTags(false);
     setError(null);
   };
 
   const collapse = (clear = false) => {
+    if (docked) {
+      if (clear) resetForm();
+      setError(null);
+      return;
+    }
     setExpanded(false);
     setError(null);
     if (clear) resetForm();
@@ -80,13 +94,13 @@ export function FeedComposer({ onSubmit, className }: FeedComposerProps) {
   };
 
   useEffect(() => {
-    if (!expanded) return;
-    const t = window.setTimeout(() => bodyRef.current?.focus(), 30);
+    if (!expanded && !docked) return;
+    const t = window.setTimeout(() => bodyRef.current?.focus(), 40);
     return () => window.clearTimeout(t);
-  }, [expanded]);
+  }, [expanded, docked]);
 
   useEffect(() => {
-    if (!expanded) return;
+    if (!expanded || docked) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
       e.stopPropagation();
@@ -94,10 +108,10 @@ export function FeedComposer({ onSubmit, className }: FeedComposerProps) {
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [expanded, hasDraft]);
+  }, [expanded, hasDraft, docked]);
 
   useEffect(() => {
-    if (!expanded) return;
+    if (!expanded || docked) return;
     const onPointer = (e: PointerEvent) => {
       const t = e.target as HTMLElement | null;
       if (!t) return;
@@ -106,21 +120,26 @@ export function FeedComposer({ onSubmit, className }: FeedComposerProps) {
     };
     document.addEventListener("pointerdown", onPointer);
     return () => document.removeEventListener("pointerdown", onPointer);
-  }, [expanded]);
+  }, [expanded, docked]);
+
+  const applyPrompt = (p: (typeof PROMPTS)[number]) => {
+    setCategory(p.id);
+    setBody((b) => (b.trim() ? b : p.starter));
+    expand();
+    window.setTimeout(() => {
+      bodyRef.current?.focus();
+      resize();
+    }, 40);
+  };
 
   const submit = () => {
-    if (!expanded) {
+    if (!expanded && !docked) {
       expand();
       return;
     }
     const post = createFeedPost({
       body,
-      headline: headline || undefined,
       category,
-      tags: tagsRaw
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean),
       media,
       author: {
         name: currentUser.name,
@@ -132,7 +151,7 @@ export function FeedComposer({ onSubmit, className }: FeedComposerProps) {
       },
     });
     if (!post) {
-      setError("Add a message to post.");
+      setError("Add a short message to share.");
       bodyRef.current?.focus();
       return;
     }
@@ -140,42 +159,210 @@ export function FeedComposer({ onSubmit, className }: FeedComposerProps) {
     collapse(true);
   };
 
-  const toolBtn = cn(
-    "inline-flex h-7 items-center justify-center gap-1 rounded-lg px-2",
-    "text-[12px] font-medium text-[var(--text-muted)] transition-colors",
-    "hover:bg-[var(--hover-fill)] hover:text-[var(--text-primary)]"
-  );
+  const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      submit();
+    }
+  };
 
+  /* ── Floating docked field (matches main chat Composer) ── */
+  if (docked) {
+    return (
+      <div
+        ref={rootRef}
+        className={cn("relative w-full min-w-0", className)}
+        data-feed-share-strip
+        data-feed-composer
+        data-company-room-composer
+        aria-expanded
+      >
+        <p id={titleId} className="sr-only">
+          Share on B&amp;G Live
+        </p>
+
+        <div
+          className={cn(
+            "glass-composer glass-composer-solid relative min-w-0 overflow-visible",
+            "rounded-[26px] px-3 pt-2.5 pb-2 sm:px-3.5"
+          )}
+        >
+          {/* Audience + prompts live inside the glass (not over the feed) */}
+          <div
+            className="mb-1.5 flex flex-wrap items-center gap-1 px-1"
+            data-composer-prompts
+          >
+            <span
+              className={cn(
+                "rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                "bg-[var(--hover-fill-strong)] text-[var(--text-secondary)]"
+              )}
+            >
+              Everyone · B&amp;G
+            </span>
+            {PROMPTS.map((p) => {
+              const active = category === p.id && body.startsWith(p.starter);
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => applyPrompt(p)}
+                  className={cn(
+                    "rounded-full px-2 py-0.5 text-[11px] font-medium transition-colors",
+                    active
+                      ? "bg-[var(--select-fill)] text-[var(--select-text)] shadow-[var(--select-shadow)]"
+                      : "bg-[var(--hover-fill)] text-[var(--text-secondary)] hover:bg-[var(--hover-fill-strong)] hover:text-[var(--text-primary)]"
+                  )}
+                  data-composer-prompt={p.id}
+                >
+                  {p.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <textarea
+            ref={bodyRef}
+            value={body}
+            onChange={(e) => {
+              setBody(e.target.value);
+              setError(null);
+            }}
+            onKeyDown={onKeyDown}
+            rows={1}
+            placeholder="Share on B&G Live… short is fine."
+            className={cn(
+              "composer-input w-full min-w-0 resize-none bg-transparent",
+              "text-[16px] leading-relaxed text-[var(--text-primary)] sm:text-[15px]",
+              "placeholder:text-[var(--text-muted)]",
+              "outline-none border-0 px-1.5 py-1 min-h-[28px]"
+            )}
+            data-composer-body
+          />
+
+          {media && (
+            <div className="relative mx-1.5 mb-2 overflow-hidden rounded-xl ring-1 ring-[var(--glass-border-soft)]">
+              {media.kind === "image" ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={media.src}
+                  alt={media.alt}
+                  className="max-h-24 w-full object-cover"
+                />
+              ) : media.kind === "video" ? (
+                <video
+                  src={media.src}
+                  poster={media.poster}
+                  controls
+                  className="max-h-28 w-full bg-black"
+                />
+              ) : null}
+              <button
+                type="button"
+                onClick={() => setMedia(undefined)}
+                className="absolute right-1.5 top-1.5 rounded-full bg-black/55 p-1 text-white"
+                aria-label="Remove media"
+              >
+                <X className="h-3 w-3" strokeWidth={ICON_STROKE} />
+              </button>
+            </div>
+          )}
+
+          {error && (
+            <p
+              className="px-1.5 pb-1 text-[12px] text-[#e07070]"
+              data-composer-error
+            >
+              {error}
+            </p>
+          )}
+
+          <div className="mt-1.5 flex min-w-0 items-center justify-between gap-1.5 sm:gap-2">
+            <div className="flex shrink-0 items-center gap-0.5">
+              <button
+                type="button"
+                onClick={() =>
+                  setMedia({
+                    kind: "image",
+                    src: DEMO_IMAGE,
+                    alt: "Attached photo",
+                  })
+                }
+                className={iconBtn}
+                title="Add photo"
+                aria-label="Add photo"
+                data-composer-attach-image
+              >
+                <ImageIcon className="h-4 w-4" strokeWidth={ICON_STROKE} />
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setMedia({
+                    kind: "video",
+                    src: DEMO_VIDEO,
+                    poster: DEMO_POSTER,
+                    alt: "Attached video",
+                  })
+                }
+                className={iconBtn}
+                title="Add video"
+                aria-label="Add video"
+                data-composer-attach-video
+              >
+                <Video className="h-4 w-4" strokeWidth={ICON_STROKE} />
+              </button>
+            </div>
+
+            <motion.button
+              type="button"
+              onClick={submit}
+              disabled={!canSend}
+              aria-label="Send to B&G Live"
+              whileHover={canSend ? pressPrimary.hover : undefined}
+              whileTap={canSend ? pressPrimary.tap : undefined}
+              transition={springSnappy}
+              className={cn(
+                "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
+                "transition-colors duration-150",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-ring)]",
+                canSend
+                  ? "bg-[var(--btn-primary-bg)] text-[var(--btn-primary-fg)] hover:bg-[var(--btn-primary-bg-hover)]"
+                  : "bg-[var(--hover-fill)] text-[var(--text-muted)] opacity-50"
+              )}
+              data-composer-submit
+            >
+              <ArrowUp className="h-4 w-4" strokeWidth={2.2} />
+            </motion.button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Inline / non-docked (legacy expand strip) ── */
   return (
     <motion.div
       ref={rootRef}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.06, duration: 0.38, ease: easeSpring }}
-      className={cn(
-        "mb-4 w-full max-w-[680px] rounded-2xl",
-        "border border-[var(--glass-border-soft)] bg-[var(--glass-strong-solid)]/90",
-        "shadow-[var(--shadow-sm)] backdrop-blur-xl",
-        "transition-[border-color,box-shadow] duration-200",
-        expanded
-          ? "border-[var(--glass-border)] shadow-[var(--shadow-md)]"
-          : "hover:border-[var(--glass-border)] hover:shadow-[var(--shadow-md)]",
-        className
-      )}
+      className={cn("relative w-full min-w-0", className)}
       data-feed-share-strip
       data-feed-composer
       aria-expanded={expanded}
     >
-      {/* Collapsed strip */}
       {!expanded && (
         <button
           type="button"
           onClick={expand}
-          className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left"
+          className={cn(
+            "glass-composer flex w-full items-center gap-2.5 rounded-[22px] px-3 py-2.5 text-left"
+          )}
         >
           <Avatar size={32} />
           <p className="min-w-0 flex-1 text-[13.5px] text-[var(--text-muted)]">
-            Share an update with your team…
+            Share on B&amp;G Live…
           </p>
           <span
             className={cn(
@@ -183,228 +370,122 @@ export function FeedComposer({ onSubmit, className }: FeedComposerProps) {
               "bg-[var(--btn-primary-bg)] text-[12px] font-medium text-[var(--btn-primary-fg)]"
             )}
           >
-            Post
+            Share
           </span>
         </button>
       )}
 
-      {/* Expanded — dense compose */}
       <AnimatePresence initial={false}>
         {expanded && (
           <motion.div
             key="composer-expanded"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.24, ease: easeSpring }}
-            className="overflow-hidden"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 4 }}
+            transition={{ duration: 0.2, ease: easeSpring }}
           >
-            <div className="px-3 pb-2.5 pt-3">
+            <div
+              className={cn(
+                "glass-composer relative min-w-0 overflow-visible",
+                "rounded-[26px] px-3 pt-3 pb-2 sm:px-3.5"
+              )}
+            >
               <p id={titleId} className="sr-only">
-                Create a post
+                Share on B&amp;G Live
               </p>
-
-              <div className="flex gap-2.5">
-                <Avatar size={32} className="mt-0.5" />
-                <div className="min-w-0 flex-1 space-y-2">
-                  <textarea
-                    ref={bodyRef}
-                    value={body}
-                    onChange={(e) => {
-                      setBody(e.target.value);
-                      setError(null);
-                    }}
-                    rows={2}
-                    placeholder="Share an update with your team…"
+              <div className="mb-2 flex flex-wrap items-center gap-1">
+                {PROMPTS.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => applyPrompt(p)}
                     className={cn(
-                      "w-full resize-none bg-transparent text-[14.5px] leading-snug",
-                      "text-[var(--text-primary)] placeholder:text-[var(--text-muted)]",
-                      "outline-none"
+                      "rounded-full px-2 py-0.5 text-[11px] font-medium",
+                      "text-[var(--text-muted)] hover:bg-[var(--hover-fill)]"
                     )}
-                    data-composer-body
-                  />
-
-                  <input
-                    value={headline}
-                    onChange={(e) => setHeadline(e.target.value)}
-                    placeholder="Headline · optional"
-                    className={cn(
-                      "h-8 w-full rounded-lg bg-[var(--hover-fill)] px-2.5",
-                      "text-[13px] text-[var(--text-primary)]",
-                      "placeholder:text-[var(--text-muted)] outline-none",
-                      "ring-1 ring-transparent transition-[box-shadow] focus:ring-[var(--glass-border-soft)]"
-                    )}
-                    data-composer-headline
-                  />
-
-                  <div
-                    className="flex flex-wrap gap-1"
-                    role="radiogroup"
-                    aria-label="Category"
+                    data-composer-prompt={p.id}
                   >
-                    {categories.map((c) => {
-                      const active = category === c.id;
-                      return (
-                        <button
-                          key={c.id}
-                          type="button"
-                          role="radio"
-                          aria-checked={active}
-                          onClick={() => setCategory(c.id)}
-                          className={cn(
-                            "rounded-full px-2.5 py-1 text-[11.5px] font-medium transition-colors",
-                            active
-                              ? "bg-[var(--select-fill)] text-[var(--select-text)] shadow-[var(--select-shadow)]"
-                              : "bg-[var(--hover-fill)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                          )}
-                        >
-                          {c.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <AnimatePresence initial={false}>
-                    {showTags && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.18, ease: easeOut }}
-                        className="overflow-hidden"
-                      >
-                        <input
-                          value={tagsRaw}
-                          onChange={(e) => setTagsRaw(e.target.value)}
-                          placeholder="Tags · comma-separated"
-                          autoFocus
-                          className={cn(
-                            "h-8 w-full rounded-lg bg-[var(--hover-fill)] px-2.5",
-                            "text-[13px] text-[var(--text-primary)]",
-                            "placeholder:text-[var(--text-muted)] outline-none",
-                            "ring-1 ring-transparent focus:ring-[var(--glass-border-soft)]"
-                          )}
-                          data-composer-tags
-                        />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  {media && (
-                    <div className="relative overflow-hidden rounded-lg ring-1 ring-[var(--glass-border-soft)]">
-                      {media.kind === "image" ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={media.src}
-                          alt={media.alt}
-                          className="max-h-28 w-full object-cover"
-                        />
-                      ) : media.kind === "video" ? (
-                        <video
-                          src={media.src}
-                          poster={media.poster}
-                          controls
-                          className="max-h-32 w-full bg-black"
-                        />
-                      ) : null}
-                      <button
-                        type="button"
-                        onClick={() => setMedia(undefined)}
-                        className="absolute right-1.5 top-1.5 rounded-full bg-black/55 p-1 text-white"
-                        aria-label="Remove media"
-                      >
-                        <X className="h-3 w-3" strokeWidth={ICON_STROKE} />
-                      </button>
-                    </div>
-                  )}
-
-                  {error && (
-                    <p
-                      className="text-[12px] text-[#e07070]"
-                      data-composer-error
-                    >
-                      {error}
-                    </p>
-                  )}
-                </div>
+                    {p.label}
+                  </button>
+                ))}
               </div>
-
-              {/* Single dense footer toolbar */}
-              <div
+              <textarea
+                ref={bodyRef}
+                value={body}
+                onChange={(e) => {
+                  setBody(e.target.value);
+                  setError(null);
+                }}
+                onKeyDown={onKeyDown}
+                rows={2}
+                placeholder="Share on B&G Live… short is fine."
                 className={cn(
-                  "mt-2.5 flex items-center gap-0.5 border-t border-[var(--glass-border-soft)] pt-2",
-                  "pl-[2.625rem]" /* avatar 32 + gap 10 */
+                  "composer-input w-full min-w-0 resize-none bg-transparent",
+                  "text-[15px] leading-relaxed text-[var(--text-primary)]",
+                  "placeholder:text-[var(--text-muted)] outline-none border-0 px-1.5 py-1"
                 )}
-              >
-                <button
-                  type="button"
-                  onClick={() =>
-                    setMedia({
-                      kind: "image",
-                      src: DEMO_IMAGE,
-                      alt: "Attached photo",
-                    })
-                  }
-                  className={toolBtn}
-                  title="Add photo"
-                  data-composer-attach-image
-                >
-                  <ImageIcon className="h-3.5 w-3.5" strokeWidth={ICON_STROKE} />
-                  <span className="hidden sm:inline">Photo</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setMedia({
-                      kind: "video",
-                      src: DEMO_VIDEO,
-                      poster: DEMO_POSTER,
-                      alt: "Attached video",
-                    })
-                  }
-                  className={toolBtn}
-                  title="Add video"
-                  data-composer-attach-video
-                >
-                  <Video className="h-3.5 w-3.5" strokeWidth={ICON_STROKE} />
-                  <span className="hidden sm:inline">Video</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowTags((s) => !s)}
-                  className={cn(
-                    toolBtn,
-                    (showTags || tagsRaw.trim()) &&
-                      "text-[var(--text-primary)]"
-                  )}
-                  title="Add tags"
-                  aria-pressed={showTags}
-                >
-                  #
-                  <span className="hidden sm:inline">Tags</span>
-                </button>
-
-                <div className="min-w-0 flex-1" />
-
-                <button
-                  type="button"
-                  onClick={() => collapse(true)}
-                  className="h-7 rounded-full px-2.5 text-[12.5px] font-medium text-[var(--text-muted)] hover:bg-[var(--hover-fill)] hover:text-[var(--text-primary)]"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={submit}
-                  className={cn(
-                    "h-7 rounded-full px-3.5 text-[12.5px] font-medium",
-                    "bg-[var(--btn-primary-bg)] text-[var(--btn-primary-fg)]",
-                    "hover:bg-[var(--btn-primary-bg-hover)]"
-                  )}
-                  data-composer-submit
-                >
-                  Post
-                </button>
+                data-composer-body
+              />
+              {error && (
+                <p className="px-1.5 text-[12px] text-[#e07070]" data-composer-error>
+                  {error}
+                </p>
+              )}
+              <div className="mt-1.5 flex items-center justify-between gap-2">
+                <div className="flex gap-0.5">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setMedia({
+                        kind: "image",
+                        src: DEMO_IMAGE,
+                        alt: "Attached photo",
+                      })
+                    }
+                    className={iconBtn}
+                    data-composer-attach-image
+                  >
+                    <ImageIcon className="h-4 w-4" strokeWidth={ICON_STROKE} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setMedia({
+                        kind: "video",
+                        src: DEMO_VIDEO,
+                        poster: DEMO_POSTER,
+                        alt: "Attached video",
+                      })
+                    }
+                    className={iconBtn}
+                    data-composer-attach-video
+                  >
+                    <Video className="h-4 w-4" strokeWidth={ICON_STROKE} />
+                  </button>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => collapse(true)}
+                    className="h-8 rounded-full px-2.5 text-[12.5px] font-medium text-[var(--text-muted)] hover:bg-[var(--hover-fill)]"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={submit}
+                    disabled={!canSend}
+                    className={cn(
+                      "flex h-9 w-9 items-center justify-center rounded-full",
+                      canSend
+                        ? "bg-[var(--btn-primary-bg)] text-[var(--btn-primary-fg)]"
+                        : "bg-[var(--hover-fill)] text-[var(--text-muted)] opacity-50"
+                    )}
+                    data-composer-submit
+                  >
+                    <ArrowUp className="h-4 w-4" strokeWidth={2.2} />
+                  </button>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -414,6 +495,13 @@ export function FeedComposer({ onSubmit, className }: FeedComposerProps) {
   );
 }
 
+const iconBtn = cn(
+  "inline-flex h-8 w-8 items-center justify-center rounded-full",
+  "text-[var(--text-muted)] transition-colors",
+  "hover:bg-[var(--hover-fill)] hover:text-[var(--text-primary)]",
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-ring)]"
+);
+
 function Avatar({
   className,
   size = 36,
@@ -422,16 +510,17 @@ function Avatar({
   size?: number;
 }) {
   return (
-    <div
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={AVATAR_URL}
+      alt=""
+      width={size}
+      height={size}
       className={cn(
-        "shrink-0 overflow-hidden rounded-lg",
-        "bg-gradient-to-br from-[#4a5568] to-[#1e2530]",
+        "shrink-0 rounded-lg object-cover ring-1 ring-[var(--glass-border-soft)]",
         className
       )}
       style={{ width: size, height: size }}
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={AVATAR_URL} alt="" className="h-full w-full object-cover" />
-    </div>
+    />
   );
 }

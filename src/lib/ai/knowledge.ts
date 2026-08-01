@@ -180,7 +180,7 @@ export function buildKnowledgeCorpus(): KnowledgeDoc[] {
       title: s.title,
       body: `${s.summary} Why now: ${s.whyNow} Who cares: ${s.whoCares}`,
       keywords: `${s.signalClass} ${s.category} ${s.forYou ?? ""} scout brief catch-up`,
-      href: s.sources[0]?.href ?? "/insights",
+      href: s.sources[0]?.href ?? "/",
       when: s.timeLabel,
       project: s.forYou,
     });
@@ -285,13 +285,19 @@ export function buildKnowledgeCorpus(): KnowledgeDoc[] {
   }
 
   for (const w of workspaces) {
+    const entityBits = [
+      ...(w.chatEntries ?? []).map((c) => c.title),
+      ...(w.fileEntries ?? []).map((f) => f.name),
+      ...(w.activity ?? []).map((a) => a.summary),
+    ].join(" ");
     docs.push({
       id: `workspace:${w.id}`,
       source: "workspace",
       title: w.name,
-      body: w.description,
-      keywords: "workspace knowledge hub project space",
-      href: "/workspaces",
+      body: `${w.description}${entityBits ? `\n${entityBits}` : ""}`,
+      keywords: `${w.projectCode ?? ""} workspace knowledge hub project space`,
+      href: `/workspaces/${w.id}`,
+      project: w.name,
     });
   }
 
@@ -689,7 +695,7 @@ export function answerFromKnowledge(
 function sourceLabel(s: KnowledgeSource): string {
   const map: Record<KnowledgeSource, string> = {
     news: "company news",
-    feed: "company feed",
+    feed: "B&G Live",
     scout: "scout brief",
     person: "people directory",
     channel: "team channel",

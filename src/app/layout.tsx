@@ -21,7 +21,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#0b1220" },
+    { media: "(prefers-color-scheme: dark)", color: "#222222" },
     { media: "(prefers-color-scheme: light)", color: "#f4f6f8" },
   ],
 };
@@ -85,26 +85,24 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
   },
   icons: {
-    // Dark browser chrome → white mark; light chrome → navy mark
+    // Same product mark as top-left (logo.png silhouette)
     icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
       {
+        // Dark browser chrome → ice accent mark
         url: "/favicon-light.png",
         media: "(prefers-color-scheme: dark)",
         type: "image/png",
         sizes: "64x64",
       },
       {
+        // Light browser chrome → navy mark (readable on white tabs)
         url: "/favicon-dark.png",
         media: "(prefers-color-scheme: light)",
         type: "image/png",
         sizes: "64x64",
       },
-      // Fallback when no color-scheme media match
-      {
-        url: "/favicon.png",
-        type: "image/png",
-        sizes: "32x32",
-      },
+      { url: "/favicon.png", type: "image/png", sizes: "32x32" },
     ],
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
     shortcut: "/favicon.png",
@@ -133,7 +131,7 @@ export const metadata: Metadata = {
 };
 
 /** Runs before hydration — theme + intro boot cover (no raw <script> in tree). */
-const BOOT_SCRIPT = `(function(){try{var d=document.documentElement;var t=localStorage.getItem("magnus-theme");if(t==="light"||t==="dark"){d.dataset.theme=t;d.classList.toggle("dark",t==="dark");d.classList.toggle("light",t==="light");}var intro=localStorage.getItem("magnus-intro-enabled");if(intro==="0"||intro==="false")return;d.classList.add("magnus-intro-pending");}catch(e){try{document.documentElement.classList.add("magnus-intro-pending");}catch(_){}}})();`;
+const BOOT_SCRIPT = `(function(){try{var d=document.documentElement;var t=localStorage.getItem("magnus-theme");if(t!=="light"&&t!=="dark"&&t!=="magnus")t="magnus";d.dataset.theme=t;d.classList.toggle("dark",t==="dark"||t==="magnus");d.classList.toggle("light",t==="light");d.classList.toggle("magnus",t==="magnus");var intro=localStorage.getItem("magnus-intro-enabled");if(intro==="0"||intro==="false")return;d.classList.add("magnus-intro-pending");}catch(e){try{document.documentElement.classList.add("magnus-intro-pending");}catch(_){}}})();`;
 
 export default function RootLayout({
   children,
@@ -143,8 +141,8 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      data-theme="dark"
-      className={`${inter.variable} ${GeistMono.variable} h-full dark`}
+      data-theme="magnus"
+      className={`${inter.variable} ${GeistMono.variable} h-full dark magnus`}
       suppressHydrationWarning
     >
       <body className="min-h-full font-sans antialiased" suppressHydrationWarning>

@@ -25,6 +25,7 @@ import {
 } from "@/lib/search-index";
 import { useChat } from "@/context/ChatContext";
 import { useMessaging } from "@/context/MessagingContext";
+import { MagnusLogo } from "@/components/brand/MagnusLogo";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ScrollFade } from "@/components/ui/ScrollFade";
 import { cn } from "@/lib/utils";
@@ -53,8 +54,15 @@ const KIND_META: Record<
 export function SearchResultsView() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { chats, selectChat, setAppMode, enterChatMode, rememberLastChatPath } =
-    useChat();
+  const {
+    chats,
+    selectChat,
+    setAppMode,
+    enterChatMode,
+    rememberLastChatPath,
+    newChat,
+    sendMessage,
+  } = useChat();
   const { conversations, selectConversation } = useMessaging();
   const initialQ = searchParams.get("q") ?? "";
   const [query, setQuery] = useState(initialQ);
@@ -104,6 +112,15 @@ export function SearchResultsView() {
     router.push(r.href);
   };
 
+  const askMagnus = () => {
+    const q = query.trim();
+    if (!q) return;
+    newChat();
+    setAppMode("chat");
+    router.push("/");
+    window.setTimeout(() => sendMessage(q), 50);
+  };
+
   return (
     <div className="relative flex h-full min-h-0 flex-col overflow-hidden">
       <ScrollFade
@@ -143,14 +160,31 @@ export function SearchResultsView() {
 
           <div className="mt-6 space-y-6" data-search-results>
             {query.trim() && liveResults.length === 0 ? (
-              <div className="rounded-[16px] border border-[var(--glass-border-soft)] bg-[var(--glass-strong-solid)] px-5 py-10 text-center">
+              <div
+                className="rounded-[16px] border border-[var(--glass-border-soft)] bg-[var(--glass-strong-solid)] px-5 py-10 text-center"
+                data-search-empty
+              >
                 <p className="text-[14px] font-medium text-[var(--text-primary)]">
                   No matches for “{query.trim()}”
                 </p>
                 <p className="mt-1 text-[13px] text-[var(--text-muted)]">
-                  Try a person name, project, OnBase, or calendar.
+                  Try a person name, project, or calendar — or ask Magnus.
                 </p>
-                <div className="mt-4 flex flex-wrap justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={askMagnus}
+                  className={cn(
+                    "btn-primary mt-5 inline-flex items-center gap-2 rounded-full px-4 py-2.5",
+                    "text-[13px] font-semibold",
+                    "transition-transform duration-150 active:scale-[0.98]",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-ring)]"
+                  )}
+                  data-search-ask-magnus
+                >
+                  <MagnusLogo size={18} tone="white" />
+                  Ask Magnus
+                </button>
+                <div className="mt-5 flex flex-wrap justify-center gap-2">
                   {["Maya", "approvals", "standup", "safety"].map((s) => (
                     <button
                       key={s}

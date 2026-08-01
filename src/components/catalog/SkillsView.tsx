@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Pin, Plus, Zap } from "lucide-react";
 import type { SkillItem } from "@/types/catalog";
@@ -11,6 +11,10 @@ import {
 } from "@/lib/catalog-create";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { AvatarMark } from "@/components/ui/BrandMark";
+import {
+  CatalogSearch,
+  matchesCatalogQuery,
+} from "@/components/ui/CatalogSearch";
 import { useToast } from "@/context/ToastContext";
 import { cn } from "@/lib/utils";
 import { easeSpring } from "@/lib/motion";
@@ -20,9 +24,27 @@ import { ScrollFade } from "@/components/ui/ScrollFade";
 export function SkillsView({ items = defaultSkills }: { items?: SkillItem[] }) {
   const { toast } = useToast();
   const [list, setList] = useState<SkillItem[]>(items);
+  const [query, setQuery] = useState("");
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState("");
   const [category, setCategory] = useState("Custom");
+  const q = query.trim().toLowerCase();
+
+  const filtered = useMemo(
+    () =>
+      list.filter((skill) =>
+        matchesCatalogQuery(
+          [
+            skill.name,
+            skill.description,
+            skill.category,
+            skill.author?.name,
+          ],
+          q
+        )
+      ),
+    [list, q]
+  );
 
   const openCreate = () => {
     setCreating(true);
@@ -38,6 +60,7 @@ export function SkillsView({ items = defaultSkills }: { items?: SkillItem[] }) {
     }
     setList((prev) => prependCatalogItem(prev, item));
     setCreating(false);
+    setQuery("");
     toast({
       title: "Skill created",
       description: `${item.name} · pinned for quick start`,
@@ -153,6 +176,17 @@ export function SkillsView({ items = defaultSkills }: { items?: SkillItem[] }) {
             )}
           </AnimatePresence>
 
+          {list.length > 0 && (
+            <CatalogSearch
+              value={query}
+              onChange={setQuery}
+              placeholder="Search skills, categories, authors…"
+              aria-label="Search skills"
+              className="mb-4"
+              data-testid="skills-search"
+            />
+          )}
+
           {list.length === 0 ? (
             <div
               className="rounded-[20px] border border-dashed border-[var(--glass-border)] px-4 py-14 text-center"
@@ -170,9 +204,25 @@ export function SkillsView({ items = defaultSkills }: { items?: SkillItem[] }) {
                 Create skill
               </button>
             </div>
+          ) : filtered.length === 0 ? (
+            <div
+              className="rounded-[20px] border border-dashed border-[var(--glass-border)] px-4 py-12 text-center"
+              data-skills-empty
+            >
+              <p className="text-[13.5px] text-[var(--text-muted)]">
+                No skills match “{query.trim()}”
+              </p>
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="mt-3 rounded-full px-3 py-1.5 text-[12.5px] font-medium text-[var(--text-muted)] hover:bg-[var(--hover-fill)]"
+              >
+                Clear search
+              </button>
+            </div>
           ) : (
             <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
-              {list.map((skill, i) => (
+              {filtered.map((skill, i) => (
                 <motion.article
                   key={skill.id}
                   layout

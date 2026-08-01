@@ -6,6 +6,7 @@ import {
   Settings,
   Moon,
   Sun,
+  Hexagon,
   House,
   MessageCircle,
   ChevronUp,
@@ -48,7 +49,6 @@ export function SettingsView() {
   } = useSidebarPrefs();
   const { toast } = useToast();
   const [notifyFeed, setNotifyFeed] = useState(true);
-  const [notifyComms, setNotifyComms] = useState(true);
   const [showIntro, setShowIntro] = useState(true);
 
   useEffect(() => {
@@ -85,6 +85,7 @@ export function SettingsView() {
                 {(
                   [
                     { id: "dark" as const, label: "Dark", icon: Moon },
+                    { id: "magnus" as const, label: "Magnus", icon: Hexagon },
                     { id: "light" as const, label: "Light", icon: Sun },
                   ] as const
                 ).map((opt) => {
@@ -97,7 +98,10 @@ export function SettingsView() {
                       onClick={() => {
                         setTheme(opt.id);
                         toast({
-                          title: `${opt.label} mode`,
+                          title:
+                            opt.id === "magnus"
+                              ? "Magnus theme"
+                              : `${opt.label} mode`,
                           tone: "success",
                           duration: 2000,
                         });
@@ -304,25 +308,13 @@ export function SettingsView() {
             <Section title="Notifications">
               <div className="space-y-1">
                 <ToggleRow
-                  label="Feed activity"
-                  description="Replies, mentions, and reactions"
+                  label="B&G Live"
+                  description="Replies and mentions in B&G Live"
                   checked={notifyFeed}
                   onChange={(v) => {
                     setNotifyFeed(v);
                     toast({
                       title: v ? "Feed alerts on" : "Feed alerts off",
-                      duration: 2000,
-                    });
-                  }}
-                />
-                <ToggleRow
-                  label="Insights"
-                  description="Story desk & leadership pulse"
-                  checked={notifyComms}
-                  onChange={(v) => {
-                    setNotifyComms(v);
-                    toast({
-                      title: v ? "Insights alerts on" : "Insights alerts off",
                       duration: 2000,
                     });
                   }}

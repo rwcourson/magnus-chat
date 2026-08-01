@@ -4,7 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Bell } from "lucide-react";
-import { feedNotifications } from "@/lib/people-data";
+import {
+  activityItems as seedActivity,
+  markActivityRead,
+  markAllActivityRead,
+  unreadActivityCount,
+  type ActivityItem,
+} from "@/lib/activity-data";
 import { formatFeedTime } from "@/lib/feed";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { PillAction } from "@/components/ui/PillAction";
@@ -16,19 +22,27 @@ import { ScrollFade } from "@/components/ui/ScrollFade";
 const NOW = Date.parse("2026-07-23T19:00:00Z");
 
 /**
- * Notifications — supporting social surface for feed activity.
+ * Durable activity inbox — multi-kind items remain listable after view,
+ * with read/unread and mark-all-read (not toast-only).
  */
 export function NotificationsView() {
-  const [items, setItems] = useState(feedNotifications);
+  const [items, setItems] = useState<ActivityItem[]>(() => [...seedActivity]);
 
   const markAllRead = () => {
-    setItems((prev) => prev.map((n) => ({ ...n, read: true })));
+    setItems((prev) => markAllActivityRead(prev));
   };
 
-  const unread = items.filter((n) => !n.read).length;
+  const markOneRead = (id: string) => {
+    setItems((prev) => markActivityRead(prev, id));
+  };
+
+  const unread = unreadActivityCount(items);
 
   return (
-    <div className="relative flex h-full min-h-0 flex-col overflow-hidden">
+    <div
+      className="relative flex h-full min-h-0 flex-col overflow-hidden"
+      data-activity-inbox
+    >
       <ScrollFade
         className="relative z-[1] min-h-0 flex-1"
         size="lg"
@@ -37,24 +51,31 @@ export function NotificationsView() {
         <div className="mx-auto w-full max-w-[680px] px-4 pb-16 pt-7 sm:px-6 sm:pt-9">
           <div className="mb-2 flex items-start justify-between gap-3">
             <PageHeader
-              eyebrow="Notifications"
+              eyebrow="Activity"
               icon={Bell}
-              title="Your activity"
-              description="Replies, likes, mentions, and system nudges — tied to the feed and work tools."
+              title="Your activity inbox"
+              description="Live, approvals, routines, knowledge, and news — durable history you can reopen, not toast-only."
               className="mb-0"
             />
             {unread > 0 && (
-              <PillAction
-                className="mt-8"
-                arrow={false}
-                onClick={markAllRead}
-              >
-                Mark all read
-              </PillAction>
+              <div className="mt-8" data-mark-all-read>
+                <PillAction arrow={false} onClick={markAllRead}>
+                  Mark all read
+                </PillAction>
+              </div>
             )}
           </div>
 
-          <div className="mt-6 flex flex-col gap-2">
+          {unread > 0 && (
+            <p
+              className="mt-3 text-[12.5px] font-medium tabular-nums text-[var(--text-muted)]"
+              data-activity-unread-count
+            >
+              {unread} unread
+            </p>
+          )}
+
+          <div className="mt-6 flex flex-col gap-2" data-activity-list>
             {items.map((n, i) => {
               const inner = (
                 <motion.article
@@ -73,6 +94,9 @@ export function NotificationsView() {
                     !n.read && "bg-[var(--select-fill)]/40"
                   )}
                   data-notification={n.id}
+                  data-activity-item={n.id}
+                  data-activity-kind={n.kind}
+                  data-activity-read={n.read ? "true" : "false"}
                 >
                   {n.actor ? (
                     <AvatarMark
@@ -105,11 +129,24 @@ export function NotificationsView() {
               );
 
               return n.href ? (
-                <Link key={n.id} href={n.href} className="block">
+                <Link
+                  key={n.id}
+                  href={n.href}
+                  className="block"
+                  onClick={() => markOneRead(n.id)}
+                  data-activity-href={n.href}
+                >
                   {inner}
                 </Link>
               ) : (
-                <div key={n.id}>{inner}</div>
+                <button
+                  key={n.id}
+                  type="button"
+                  className="block w-full text-left"
+                  onClick={() => markOneRead(n.id)}
+                >
+                  {inner}
+                </button>
               );
             })}
           </div>

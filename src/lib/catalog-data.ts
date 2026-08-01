@@ -305,26 +305,95 @@ export const workspaces: WorkspaceItem[] = [
       {
         name: "Maya Chen",
         initials: "MC",
+        role: "Senior PM",
         avatarUrl:
           "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=128&h=128&fit=crop&crop=faces",
       },
       {
         name: "Derek Walsh",
         initials: "DW",
+        role: "Superintendent",
         avatarUrl:
           "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=128&h=128&fit=crop&crop=faces",
       },
       {
         name: "James Courson",
         initials: "JC",
+        role: "Sponsor",
         avatarUrl:
           "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=128&h=128&fit=crop&crop=faces",
       },
-      { name: "Robert Courson", initials: "RC" },
+      { name: "Robert Courson", initials: "RC", role: "Product" },
     ],
     chats: 18,
     files: 142,
     updatedAt: "2026-07-23T15:10:00Z",
+    chatEntries: [
+      {
+        id: "ws-tower-chat-crane",
+        title: "Crane & laydown",
+        preview: "Maya: Pick window confirmed for Friday AM — flaggers on call.",
+        updatedAt: "2026-07-23T14:40:00Z",
+        messageCount: 42,
+      },
+      {
+        id: "ws-tower-chat-envelope",
+        title: "Envelope trade",
+        preview: "Derek: Mockup panel photos uploaded after lunch huddle.",
+        updatedAt: "2026-07-23T12:15:00Z",
+        messageCount: 28,
+      },
+      {
+        id: "ws-tower-chat-look-ahead",
+        title: "3-week look-ahead",
+        preview: "Magnus: Draft look-ahead ready for PM review.",
+        updatedAt: "2026-07-22T18:00:00Z",
+        messageCount: 15,
+      },
+    ],
+    fileEntries: [
+      {
+        id: "ws-tower-file-logistics",
+        name: "Crane logistics plan v4.pdf",
+        kind: "PDF",
+        updatedAt: "2026-07-23T10:00:00Z",
+        sizeLabel: "2.4 MB",
+      },
+      {
+        id: "ws-tower-file-rfi",
+        name: "Envelope RFI log.xlsx",
+        kind: "Sheet",
+        updatedAt: "2026-07-22T16:30:00Z",
+        sizeLabel: "840 KB",
+      },
+      {
+        id: "ws-tower-file-photos",
+        name: "Week 28 site photos.zip",
+        kind: "Archive",
+        updatedAt: "2026-07-21T20:00:00Z",
+        sizeLabel: "48 MB",
+      },
+    ],
+    activity: [
+      {
+        id: "ws-tower-act-1",
+        summary: "Maya Chen posted look-ahead notes to Crane & laydown",
+        at: "2026-07-23T14:42:00Z",
+        actor: "Maya Chen",
+      },
+      {
+        id: "ws-tower-act-2",
+        summary: "Crane logistics plan v4.pdf uploaded",
+        at: "2026-07-23T10:05:00Z",
+        actor: "Derek Walsh",
+      },
+      {
+        id: "ws-tower-act-3",
+        summary: "Routine · Safety digest tagged this project",
+        at: "2026-07-23T07:00:00Z",
+        actor: "Magnus",
+      },
+    ],
   },
   {
     id: "ws-safety",
@@ -337,12 +406,14 @@ export const workspaces: WorkspaceItem[] = [
       {
         name: "Safety Ops",
         initials: "SO",
+        role: "Ops",
         avatarUrl:
           "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=128&h=128&fit=crop&crop=faces",
       },
       {
         name: "Priya Nair",
         initials: "PN",
+        role: "QA",
         avatarUrl:
           "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=128&h=128&fit=crop&crop=faces",
       },
@@ -350,6 +421,52 @@ export const workspaces: WorkspaceItem[] = [
     chats: 9,
     files: 64,
     updatedAt: "2026-07-22T21:30:00Z",
+    chatEntries: [
+      {
+        id: "ws-safety-chat-trir",
+        title: "TRIR playbook",
+        preview: "Priya: Q3 milestone language cleared with marketing.",
+        updatedAt: "2026-07-22T20:10:00Z",
+        messageCount: 19,
+      },
+      {
+        id: "ws-safety-chat-toolbox",
+        title: "Toolbox talk drafts",
+        preview: "Safety Ops: Heat illness talk ready for field packs.",
+        updatedAt: "2026-07-22T15:00:00Z",
+        messageCount: 11,
+      },
+    ],
+    fileEntries: [
+      {
+        id: "ws-safety-file-trir",
+        name: "TRIR Q3 brief.pdf",
+        kind: "PDF",
+        updatedAt: "2026-07-22T19:00:00Z",
+        sizeLabel: "1.1 MB",
+      },
+      {
+        id: "ws-safety-file-obs",
+        name: "Observation checklist.docx",
+        kind: "Doc",
+        updatedAt: "2026-07-21T14:00:00Z",
+        sizeLabel: "220 KB",
+      },
+    ],
+    activity: [
+      {
+        id: "ws-safety-act-1",
+        summary: "TRIR Q3 brief shared company-wide",
+        at: "2026-07-22T19:05:00Z",
+        actor: "Priya Nair",
+      },
+      {
+        id: "ws-safety-act-2",
+        summary: "Toolbox talk pack published for Southeast",
+        at: "2026-07-22T15:10:00Z",
+        actor: "Safety Ops",
+      },
+    ],
   },
   {
     id: "ws-magnus",
@@ -362,12 +479,14 @@ export const workspaces: WorkspaceItem[] = [
       {
         name: "James Courson",
         initials: "JC",
+        role: "Sponsor",
         avatarUrl:
           "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=128&h=128&fit=crop&crop=faces",
       },
       {
         name: "Robert Courson",
         initials: "RC",
+        role: "Product",
         avatarUrl:
           "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=128&h=128&fit=crop&crop=faces",
       },
@@ -375,6 +494,52 @@ export const workspaces: WorkspaceItem[] = [
     chats: 24,
     files: 88,
     updatedAt: "2026-07-23T17:00:00Z",
+    chatEntries: [
+      {
+        id: "ws-magnus-chat-arch",
+        title: "Architecture reviews",
+        preview: "Robert: Entity model for workspaces lands this sprint.",
+        updatedAt: "2026-07-23T16:45:00Z",
+        messageCount: 56,
+      },
+      {
+        id: "ws-magnus-chat-gov",
+        title: "Governance",
+        preview: "James: AI use policy draft for legal pass.",
+        updatedAt: "2026-07-23T11:00:00Z",
+        messageCount: 22,
+      },
+    ],
+    fileEntries: [
+      {
+        id: "ws-magnus-file-adr",
+        name: "ADR-014 workspace entities.md",
+        kind: "Doc",
+        updatedAt: "2026-07-23T16:00:00Z",
+        sizeLabel: "48 KB",
+      },
+      {
+        id: "ws-magnus-file-rollout",
+        name: "Rollout playbook v2.pdf",
+        kind: "PDF",
+        updatedAt: "2026-07-20T12:00:00Z",
+        sizeLabel: "3.2 MB",
+      },
+    ],
+    activity: [
+      {
+        id: "ws-magnus-act-1",
+        summary: "ADR-014 workspace entities committed",
+        at: "2026-07-23T16:05:00Z",
+        actor: "Robert Courson",
+      },
+      {
+        id: "ws-magnus-act-2",
+        summary: "Governance chat: policy draft attached",
+        at: "2026-07-23T11:05:00Z",
+        actor: "James Courson",
+      },
+    ],
   },
   {
     id: "ws-nashville",
@@ -387,13 +552,116 @@ export const workspaces: WorkspaceItem[] = [
       {
         name: "Derek Walsh",
         initials: "DW",
+        role: "Superintendent",
         avatarUrl:
           "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=128&h=128&fit=crop&crop=faces",
       },
-      { name: "Field Night", initials: "FN" },
+      { name: "Field Night", initials: "FN", role: "Crew lead" },
     ],
     chats: 11,
     files: 53,
     updatedAt: "2026-07-21T19:20:00Z",
+    chatEntries: [
+      {
+        id: "ws-nsh-chat-pour",
+        title: "Pour windows",
+        preview: "Field Night: Level 3 slab pour locked for Thu 2am.",
+        updatedAt: "2026-07-21T18:40:00Z",
+        messageCount: 33,
+      },
+      {
+        id: "ws-nsh-chat-qa",
+        title: "QA checklists",
+        preview: "Derek: Pre-pour checklist signed by QC.",
+        updatedAt: "2026-07-21T16:00:00Z",
+        messageCount: 9,
+      },
+    ],
+    fileEntries: [
+      {
+        id: "ws-nsh-file-checklist",
+        name: "Pre-pour QA checklist.pdf",
+        kind: "PDF",
+        updatedAt: "2026-07-21T15:30:00Z",
+        sizeLabel: "410 KB",
+      },
+      {
+        id: "ws-nsh-file-schedule",
+        name: "Night shift schedule.xlsx",
+        kind: "Sheet",
+        updatedAt: "2026-07-20T09:00:00Z",
+        sizeLabel: "96 KB",
+      },
+    ],
+    activity: [
+      {
+        id: "ws-nsh-act-1",
+        summary: "Pour window confirmed for Thursday night",
+        at: "2026-07-21T18:45:00Z",
+        actor: "Field Night",
+      },
+      {
+        id: "ws-nsh-act-2",
+        summary: "Pre-pour QA checklist signed",
+        at: "2026-07-21T16:05:00Z",
+        actor: "Derek Walsh",
+      },
+    ],
   },
 ];
+
+/**
+ * Mutable demo registry: seed workspaces + user-created ones.
+ * List and detail routes share this so create → open works.
+ */
+let workspaceRegistry: WorkspaceItem[] = workspaces.slice();
+
+/** Current list (seed + created). Prefer this over raw `workspaces` in UI. */
+export function listWorkspaces(): WorkspaceItem[] {
+  return workspaceRegistry.slice();
+}
+
+/** Lookup by id — includes workspaces registered after create. */
+export function getWorkspaceById(id: string): WorkspaceItem | undefined {
+  return workspaceRegistry.find((w) => w.id === id);
+}
+
+/** Insert or replace a workspace in the shared registry (list + detail). */
+export function upsertWorkspace(item: WorkspaceItem): WorkspaceItem {
+  workspaceRegistry = [
+    item,
+    ...workspaceRegistry.filter((w) => w.id !== item.id),
+  ];
+  return item;
+}
+
+/** Reset registry to seed (tests). */
+export function resetWorkspaceRegistry(): void {
+  workspaceRegistry = workspaces.slice();
+}
+
+/** Entity subsets used by detail UI and verify scripts. */
+export function getWorkspaceEntitySubsets(ws: WorkspaceItem): {
+  members: WorkspaceItem["members"];
+  chatEntries: NonNullable<WorkspaceItem["chatEntries"]>;
+  fileEntries: NonNullable<WorkspaceItem["fileEntries"]>;
+  activity: NonNullable<WorkspaceItem["activity"]>;
+} {
+  return {
+    members: ws.members,
+    chatEntries: ws.chatEntries ?? [],
+    fileEntries: ws.fileEntries ?? [],
+    activity: ws.activity ?? [],
+  };
+}
+
+/** Whether seed data is a full project entity (not list-only). */
+export function workspaceHasEntityContent(ws: WorkspaceItem): boolean {
+  const s = getWorkspaceEntitySubsets(ws);
+  return (
+    s.members.length >= 1 &&
+    s.chatEntries.length >= 1 &&
+    s.fileEntries.length >= 1 &&
+    s.activity.length >= 1
+  );
+}

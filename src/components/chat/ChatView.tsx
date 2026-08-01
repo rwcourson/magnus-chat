@@ -39,8 +39,8 @@ export function ChatView() {
   }, [chatParam, chats, selectChat]);
 
   const hasMessages = !!activeChat && activeChat.messages.length > 0;
-  // Home→Chat navigates to /messages (or catalog) while still on `/` for a
-  // frame — hold home so we never flash a blank blue composer mid-route.
+  // Home→Chat navigates to catalog tools while still on `/` for a frame —
+  // hold home so we never flash a blank composer mid-route.
   // Only for non-Magnus destinations; bare `/` is a real new-chat surface.
   const restoringOtherSurface =
     appMode === "chat" &&

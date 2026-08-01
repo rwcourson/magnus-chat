@@ -15,9 +15,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import {
   Bell,
-  Zap,
-  Clock3,
-  Blocks,
   FolderKanban,
   MessageCircle,
   ChevronsUpDown,
@@ -28,21 +25,19 @@ import {
   Settings,
   Moon,
   Sun,
-  Newspaper,
+  Hexagon,
+  Hash,
   House,
   Users,
-  Radar,
   Search,
   type LucideIcon,
 } from "lucide-react";
 import { MagnusLogo } from "@/components/brand/MagnusLogo";
 import { Portal } from "@/components/ui/Portal";
 import { useChat } from "@/context/ChatContext";
-import { useScout } from "@/context/ScoutContext";
-import { useTheme } from "@/context/ThemeContext";
+import { useTheme, nextTheme, type Theme } from "@/context/ThemeContext";
 import { currentUser } from "@/lib/mock-data";
-import { canAccessInsights } from "@/lib/auth-demo";
-import { ConversationNav } from "@/components/messaging/ConversationNav";
+import { ChatModeNav } from "@/components/messaging/ChatModeNav";
 import { MagnusChatControl } from "@/components/messaging/MagnusChatControl";
 import { MagnusHistoryDrawer } from "@/components/messaging/MagnusHistoryDrawer";
 import { useMessaging } from "@/context/MessagingContext";
@@ -84,37 +79,22 @@ const TOP_X = "px-2.5";
 const spring = springLayout;
 const flySpring = springSnappy;
 
-/** Intranet mode — social / news first (order/visibility from sidebar prefs) */
+/** Intranet mode — company destinations (order/visibility from sidebar prefs) */
 const homeNavItems: {
   id: import("@/lib/sidebar-prefs").HomeNavId;
   href: string;
   label: string;
   icon: LucideIcon;
-  action?: "home" | "messages";
-  badgeKey?: "comms";
+  action?: "home";
 }[] = [
   { id: "home", href: "/", label: "Home", icon: House, action: "home" },
-  {
-    id: "messages",
-    href: "/messages",
-    label: "Messages",
-    icon: MessageCircle,
-    action: "messages",
-  },
-  { id: "feed", href: "/feed", label: "Feed", icon: Newspaper },
+  { id: "feed", href: "/feed", label: "B&G Live", icon: Hash },
   { id: "people", href: "/people", label: "People", icon: Users },
   // Notifications live in the top header — not duplicated in the sidebar
   {
-    id: "comms",
-    href: "/insights",
-    label: "Insights",
-    icon: Radar,
-    badgeKey: "comms",
-  },
-  {
-    id: "knowledge",
+    id: "workspaces",
     href: "/workspaces",
-    label: "Knowledge",
+    label: "Workspaces",
     icon: FolderKanban,
   },
 ];
@@ -123,37 +103,13 @@ const homeNavById = Object.fromEntries(
   homeNavItems.map((i) => [i.id, i])
 ) as Record<(typeof homeNavItems)[number]["id"], (typeof homeNavItems)[number]>;
 
-/** Account menu — secondary tools live here (not Chat primary nav) */
+/** Account menu — account/help only (skills & tools live in Chat mode) */
 const moreItems: {
   href: string;
   label: string;
   icon: LucideIcon;
   detail?: string;
 }[] = [
-  {
-    href: "/skills",
-    label: "Agent Skills",
-    icon: Zap,
-    detail: "Prompts & agents",
-  },
-  {
-    href: "/routines",
-    label: "Routines",
-    icon: Clock3,
-    detail: "Scheduled runs",
-  },
-  {
-    href: "/workspaces",
-    label: "Workspaces",
-    icon: FolderKanban,
-    detail: "Knowledge hubs",
-  },
-  {
-    href: "/integrations",
-    label: "Integrations",
-    icon: Blocks,
-    detail: "Connectors & apps",
-  },
   { href: "/help", label: "Help center", icon: HelpCircle, detail: "Guides & FAQ" },
   { href: "/settings", label: "Settings", icon: Settings, detail: "Preferences" },
 ];
@@ -250,28 +206,29 @@ function SidebarPanel({
     isNewChatSurface,
     chats,
     selectChat,
+    newChat,
+    sendMessage,
   } = useChat();
-  const { conversations, selectConversation } = useMessaging();
-  const { pendingCount } = useScout();
+  const { conversations } = useMessaging();
   const { theme, toggleTheme } = useTheme();
   const { prefs } = useSidebarPrefs();
   const navLayoutId = useId();
-  /** Team messaging owns the sidebar when Chat mode *or* on /messages */
-  const messagingSidebar =
-    appMode === "chat" || pathname.startsWith("/messages");
-  /** Home destinations only when not in messaging shell — respect user prefs */
-  const navItems = messagingSidebar
+  /** Chat shell owns the sidebar in Chat mode (Magnus + tools) */
+  const chatSidebar = appMode === "chat";
+  /** Home destinations only when not in Chat shell — respect user prefs */
+  const navItems = chatSidebar
     ? []
     : visibleHomeNav(prefs)
         .map((id) => homeNavById[id])
-        .filter(Boolean)
-        // Insights is capability-gated (leadership / IC demo access)
-        .filter((item) =>
-          item.id === "comms" ? canAccessInsights() : true
-        );
+        .filter(Boolean);
   const showMagnusChat = isChatSectionVisible(prefs, "magnusChat");
-  const showChannels = isChatSectionVisible(prefs, "channels");
-  const showDms = isChatSectionVisible(prefs, "dms");
+  const showHistory = isChatSectionVisible(prefs, "history");
+  const hasChatBody =
+    showHistory ||
+    isChatSectionVisible(prefs, "skills") ||
+    isChatSectionVisible(prefs, "routines") ||
+    isChatSectionVisible(prefs, "integrations") ||
+    isChatSectionVisible(prefs, "workspaces");
   /** Shared sidebar search — under Home/Chat, both modes */
   const [sidebarSearch, setSidebarSearch] = useState("");
   const searchQ = sidebarSearch.trim();
@@ -296,10 +253,9 @@ function SidebarPanel({
         return;
       }
       if (r.kind === "message" && r.conversationId) {
-        selectConversation(r.conversationId);
-        rememberLastChatPath("/messages");
-        enterChatMode();
-        router.push("/messages");
+        // Team messaging surfaces retired from primary nav — open Magnus instead
+        setAppMode("chat");
+        router.push("/");
         setSidebarSearch("");
         onCloseMobile?.();
         return;
@@ -314,15 +270,7 @@ function SidebarPanel({
       setSidebarSearch("");
       onCloseMobile?.();
     },
-    [
-      selectChat,
-      setAppMode,
-      router,
-      selectConversation,
-      rememberLastChatPath,
-      enterChatMode,
-      onCloseMobile,
-    ]
+    [selectChat, setAppMode, router, onCloseMobile]
   );
 
   const expandSidebar = useCallback(() => {
@@ -359,13 +307,10 @@ function SidebarPanel({
       : "side-label group relative flex h-9 w-full items-center gap-3 rounded-xl px-2.5"
   );
 
-  // Remember last Chat-mode surface so Home → Chat restores it cleanly
+  // Track last Chat-mode tool routes for deep-link memory (not used on mode toggle —
+  // Home → Chat always opens a blank new-chat screen).
   useEffect(() => {
     if (appMode !== "chat") return;
-    if (pathname.startsWith("/messages")) {
-      rememberLastChatPath("/messages");
-      return;
-    }
     for (const base of [
       "/skills",
       "/routines",
@@ -397,28 +342,12 @@ function SidebarPanel({
   const onModeChange = (mode: AppMode) => {
     if (mode === "home") {
       goHome();
-      if (pathname !== "/") router.push("/");
+      // Always `/` without ?chat= so Chat re-entry cannot re-select via URL
+      router.push("/");
     } else {
-      // Always leave Home for a Chat surface: last session view, or new chat
+      // Always open blank new-chat surface (not prior thread / catalog)
       const dest = enterChatMode();
-      const onMessages =
-        pathname.startsWith("/messages") && dest.startsWith("/messages");
-      const onSameCatalog =
-        dest !== "/messages" &&
-        dest !== "/" &&
-        !dest.includes("chat=") &&
-        (pathname === dest || pathname.startsWith(`${dest}/`));
-      const onSameAiThread =
-        dest.includes("chat=") &&
-        pathname === "/" &&
-        activeChatId != null &&
-        dest.includes(activeChatId);
-      // New Magnus empty state lives on `/` — already there after enterChatMode
-      const onNewChatSurface = dest === "/" && pathname === "/";
-
-      if (!onMessages && !onSameCatalog && !onSameAiThread && !onNewChatSurface) {
-        router.push(dest.startsWith("/") ? dest : `/${dest}`);
-      }
+      router.push(dest.startsWith("/") ? dest : `/${dest}`);
     }
     onCloseMobile?.();
   };
@@ -604,7 +533,7 @@ function SidebarPanel({
                 router.push(`/search?q=${encodeURIComponent(q)}`);
                 onCloseMobile?.();
               }}
-              placeholder="Search people, messages…"
+              placeholder="Search chats, people, skills…"
               className={cn(
                 "h-9 w-full rounded-xl",
                 "border border-[var(--glass-border-soft)] bg-[var(--hover-fill)]",
@@ -616,7 +545,7 @@ function SidebarPanel({
               )}
               data-messaging-search
               data-sidebar-search
-              aria-label="Search people, messages, chats, and more"
+              aria-label="Search chats, people, skills, and more"
             />
           </label>
         </div>
@@ -643,44 +572,30 @@ function SidebarPanel({
             const active =
               item.action === "home"
                 ? pathname === "/" && appMode === "home"
-                : item.action === "messages"
-                  ? false // switches to Chat mode; highlight there via channels
-                  : item.href === "/feed"
-                    ? pathname === "/feed" || pathname.startsWith("/feed/")
-                    : item.href === "/insights"
-                      ? pathname === "/insights" ||
-                        pathname.startsWith("/insights/") ||
-                        pathname === "/comms" ||
-                        pathname.startsWith("/comms/")
-                      : pathname.startsWith(item.href);
-            const badge =
-              "badgeKey" in item && item.badgeKey === "comms" && pendingCount > 0
-                ? pendingCount
-                : null;
+                : item.href === "/feed"
+                  ? pathname === "/feed" || pathname.startsWith("/feed/")
+                  : pathname.startsWith(item.href);
 
             return (
               <FlyoutRow
                 key={`${appMode}-${item.label}`}
                 collapsed={collapsed}
-                label={badge ? `${item.label} (${badge})` : item.label}
+                label={item.label}
               >
                 <Link
                   href={item.href}
                   data-tour-target={
-                    item.id === "messages" || item.id === "feed"
-                      ? item.id
+                    item.id === "feed"
+                      ? "feed"
                       : item.id === "home"
                         ? "home"
                         : undefined
                   }
                   onClick={() => {
                     if (item.action === "home") goHome();
-                    else if (item.action === "messages") {
-                      rememberLastChatPath("/messages");
-                      enterChatMode();
-                      if (!pathname.startsWith("/messages")) {
-                        router.push("/messages");
-                      }
+                    else if (appMode === "chat") {
+                      // Leaving chat destinations from Home nav → stay coherent
+                      goHome();
                     }
                     onCloseMobile?.();
                   }}
@@ -704,32 +619,20 @@ function SidebarPanel({
                             : "opacity-80 group-hover:opacity-100"
                         )}
                       />
-                      {badge != null && (
-                        <span className="btn-solid absolute -right-1.5 -top-1.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full px-0.5 text-[8px] font-bold leading-none shadow-none">
-                          {badge > 9 ? "9+" : badge}
-                        </span>
-                      )}
                     </span>
                   ) : (
                     <span className="relative z-10 flex w-full items-center gap-3">
-                      <span className="relative">
-                        <SideIcon
-                          icon={item.icon}
-                          className={cn(
-                            "transition-opacity duration-150",
-                            active
-                              ? "opacity-100"
-                              : "opacity-80 group-hover:opacity-100"
-                          )}
-                        />
-                      </span>
-                      <span className="flex min-w-0 flex-1 items-center justify-between gap-2 truncate">
-                        <span className="truncate">{item.label}</span>
-                        {badge != null && (
-                          <span className="shrink-0 rounded-full bg-[var(--hover-fill-strong)] px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-[var(--text-secondary)]">
-                            {badge}
-                          </span>
+                      <SideIcon
+                        icon={item.icon}
+                        className={cn(
+                          "transition-opacity duration-150",
+                          active
+                            ? "opacity-100"
+                            : "opacity-80 group-hover:opacity-100"
                         )}
+                      />
+                      <span className="min-w-0 flex-1 truncate">
+                        {item.label}
                       </span>
                     </span>
                   )}
@@ -754,10 +657,31 @@ function SidebarPanel({
             data-sidebar-global-results
           >
             {globalHits.length === 0 ? (
-              <p className="px-2.5 py-4 text-[12px] leading-relaxed text-[var(--text-muted)]">
-                No matches for “{searchQ}”. Try a person, channel, or page
-                name.
-              </p>
+              <div className="px-2.5 py-3" data-sidebar-search-empty>
+                <p className="text-[12px] leading-relaxed text-[var(--text-muted)]">
+                  No matches for “{searchQ}”.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const q = searchQ;
+                    newChat();
+                    setAppMode("chat");
+                    setSidebarSearch("");
+                    onCloseMobile?.();
+                    router.push("/");
+                    window.setTimeout(() => sendMessage(q), 50);
+                  }}
+                  className={cn(
+                    "btn-primary mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl py-2",
+                    "text-[12.5px] font-semibold"
+                  )}
+                  data-sidebar-search-ask-magnus
+                >
+                  <MagnusLogo size={16} tone="white" />
+                  Ask Magnus
+                </button>
+              </div>
             ) : (
               <ul className="flex flex-col gap-0.5 px-0.5">
                 {globalHits.map((r) => (
@@ -785,42 +709,41 @@ function SidebarPanel({
                 ))}
               </ul>
             )}
-            <button
-              type="button"
-              onClick={() => {
-                router.push(`/search?q=${encodeURIComponent(searchQ)}`);
-                onCloseMobile?.();
-              }}
-              className="mx-2 mt-2 rounded-xl px-2.5 py-2 text-left text-[12px] font-medium text-[var(--text-muted)] hover:bg-[var(--hover-fill)] hover:text-[var(--text-primary)]"
-              data-sidebar-search-all
-            >
-              View all results
-            </button>
+            {globalHits.length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  router.push(`/search?q=${encodeURIComponent(searchQ)}`);
+                  onCloseMobile?.();
+                }}
+                className="mx-2 mt-2 rounded-xl px-2.5 py-2 text-left text-[12px] font-medium text-[var(--text-muted)] hover:bg-[var(--hover-fill)] hover:text-[var(--text-primary)]"
+                data-sidebar-search-all
+              >
+                View all results
+              </button>
+            )}
           </div>
-        ) : messagingSidebar ? (
+        ) : chatSidebar ? (
           <>
-            {(showChannels || showDms) && (
-              <ConversationNav
+            {hasChatBody ? (
+              <ChatModeNav
                 compact={collapsed}
                 onNavigate={() => onCloseMobile?.()}
-                showChannels={showChannels}
-                showDms={showDms}
-                hideSearch={!collapsed}
                 searchQuery={sidebarSearch}
-                onSearchQueryChange={setSidebarSearch}
               />
-            )}
-            {!showChannels && !showDms && !showMagnusChat && !collapsed && (
-              <p className="py-4 text-[12px] leading-relaxed text-[var(--text-muted)]">
-                Chat sidebar is empty. Enable sections in{" "}
-                <Link
-                  href="/settings"
-                  className="font-medium text-[var(--text-secondary)] underline-offset-2 hover:underline"
-                >
-                  Settings
-                </Link>
-                .
-              </p>
+            ) : (
+              !collapsed && (
+                <p className="py-4 text-[12px] leading-relaxed text-[var(--text-muted)]">
+                  Chat sidebar is empty. Enable sections in{" "}
+                  <Link
+                    href="/settings"
+                    className="font-medium text-[var(--text-secondary)] underline-offset-2 hover:underline"
+                  >
+                    Settings
+                  </Link>
+                  .
+                </p>
+              )
             )}
             {/* Full drawer still available if opened programmatically */}
             <MagnusHistoryDrawer />
@@ -835,20 +758,19 @@ function SidebarPanel({
         ) : (
           <div className="flex min-h-0 flex-1 flex-col px-1 pt-3">
             <p className="px-2.5 text-[11.5px] leading-relaxed text-[var(--text-muted)]">
-              Search people, messages, and Magnus chats from either mode — or
-              open{" "}
+              Search people and Magnus chats, or switch to{" "}
               <button
                 type="button"
                 onClick={() => {
-                  rememberLastChatPath("/messages");
-                  enterChatMode();
-                  router.push("/messages");
+                  rememberLastChatPath("/");
+                  const dest = enterChatMode();
+                  router.push(dest.startsWith("/") ? dest : `/${dest}`);
                 }}
                 className="font-medium text-[var(--text-secondary)] underline-offset-2 hover:text-[var(--text-primary)] hover:underline"
               >
-                Messages
+                Chat
               </button>{" "}
-              for channels.
+              for history, skills, and routines.
             </p>
           </div>
         )}
@@ -1026,7 +948,7 @@ function UserMenuButton({
   onNavigate,
 }: {
   collapsed: boolean;
-  theme: "dark" | "light";
+  theme: Theme;
   onToggleTheme: () => void;
   onNavigate: () => void;
 }) {
@@ -1038,6 +960,14 @@ function UserMenuButton({
     left: number;
     width: number;
   } | null>(null);
+
+  const upcomingTheme = nextTheme(theme);
+  const themeSwitch =
+    upcomingTheme === "light"
+      ? { icon: Sun, label: "Light mode" }
+      : upcomingTheme === "magnus"
+        ? { icon: Hexagon, label: "Magnus theme" }
+        : { icon: Moon, label: "Dark mode" };
 
   const close = useCallback(() => setOpen(false), []);
   const toggle = useCallback(() => setOpen((v) => !v), []);
@@ -1243,11 +1173,11 @@ function UserMenuButton({
                       className={menuRowClass}
                     >
                       <SideIcon
-                        icon={theme === "dark" ? Sun : Moon}
+                        icon={themeSwitch.icon}
                         className="opacity-85 transition-opacity group-hover:opacity-100"
                       />
                       <span className="min-w-0 flex-1 truncate">
-                        {theme === "dark" ? "Light mode" : "Dark mode"}
+                        {themeSwitch.label}
                       </span>
                     </button>
                   </div>

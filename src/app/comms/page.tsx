@@ -2,12 +2,21 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useChat } from "@/context/ChatContext";
 
-/** Legacy Comms route → Insights */
-export default function CommsRedirectPage() {
+/** Legacy Comms / Insights route — send people home. */
+export default function CommsPage() {
   const router = useRouter();
+  const { goHome } = useChat();
+
   useEffect(() => {
-    router.replace("/insights");
-  }, [router]);
-  return null;
+    goHome();
+    router.replace("/");
+  }, [goHome, router]);
+
+  return (
+    <div className="flex h-full items-center justify-center text-[13px] text-[var(--text-muted)]">
+      Redirecting…
+    </div>
+  );
 }

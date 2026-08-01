@@ -46,18 +46,54 @@ export type RoutineItem = {
   lastRun?: string;
 };
 
+/** Scoped chat/thread inside a project workspace entity. */
+export type WorkspaceChatEntry = {
+  id: string;
+  title: string;
+  preview: string;
+  updatedAt: string;
+  messageCount?: number;
+};
+
+/** File / document row for a workspace entity. */
+export type WorkspaceFileEntry = {
+  id: string;
+  name: string;
+  kind: string;
+  updatedAt: string;
+  sizeLabel?: string;
+};
+
+/** Recent activity on a workspace entity. */
+export type WorkspaceActivityEntry = {
+  id: string;
+  summary: string;
+  at: string;
+  actor?: string;
+};
+
+export type WorkspaceMember = {
+  name: string;
+  initials: string;
+  avatarUrl?: string;
+  role?: string;
+};
+
+/**
+ * Project workspace entity — list summary + nested chats, files, activity.
+ * `chats` / `files` counts stay for list chrome; entity arrays are source of truth when present.
+ */
 export type WorkspaceItem = {
   id: string;
   name: string;
   description: string;
   projectCode?: string;
   coverUrl: string;
-  members: {
-    name: string;
-    initials: string;
-    avatarUrl?: string;
-  }[];
+  members: WorkspaceMember[];
   chats: number;
   files: number;
   updatedAt: string;
+  chatEntries?: WorkspaceChatEntry[];
+  fileEntries?: WorkspaceFileEntry[];
+  activity?: WorkspaceActivityEntry[];
 };

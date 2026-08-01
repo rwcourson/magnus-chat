@@ -50,18 +50,18 @@ const pages: SearchResult[] = [
   {
     id: "page-messages",
     kind: "page",
-    title: "Messages",
-    subtitle: "Team channels and DMs",
-    href: "/messages",
-    keywords: "messages slack channels dm team chat magnus",
+    title: "Magnus Chat",
+    subtitle: "AI chat and history",
+    href: "/",
+    keywords: "messages chat magnus ai history skills routines automations",
   },
   {
     id: "page-feed",
     kind: "page",
-    title: "Feed",
-    subtitle: "Company news and posts",
+    title: "B&G Live",
+    subtitle: "Company-wide updates and conversation",
     href: "/feed",
-    keywords: "feed news social posts",
+    keywords: "feed news social posts company room bulletin chat updates bg live",
   },
   {
     id: "page-approvals",
@@ -78,14 +78,6 @@ const pages: SearchResult[] = [
     subtitle: "Agenda and prep",
     href: "/calendar",
     keywords: "calendar schedule meetings outlook agenda",
-  },
-  {
-    id: "page-insights",
-    kind: "page",
-    title: "Insights",
-    subtitle: "Leadership pulse & story desk",
-    href: "/insights",
-    keywords: "insights comms scout drafts publish leadership headlines beat",
   },
 ];
 
@@ -117,26 +109,8 @@ export function buildSearchIndex(
         .join(" ")}`,
     }));
 
-  const messageResults: SearchResult[] = conversations.map((c) => {
-    const recent = c.messages
-      .slice(-4)
-      .map((m) => `${m.author.name} ${m.body}`)
-      .join(" ");
-    const title =
-      c.kind === "channel" ? `#${c.name}` : c.name;
-    return {
-      id: `msg-${c.id}`,
-      kind: "message" as const,
-      title,
-      subtitle:
-        c.kind === "channel"
-          ? c.topic ?? "Channel"
-          : "Direct message",
-      href: `/messages`,
-      conversationId: c.id,
-      keywords: `${c.name} ${c.slug ?? ""} ${c.topic ?? ""} ${c.purpose ?? ""} ${recent} ${c.kind} dm channel messages`,
-    };
-  });
+  // Team channels / DMs are not primary surfaces — omit from search for now.
+  void conversations;
 
   const postResults: SearchResult[] = feedPosts.map((p) => ({
     id: `post-${p.id}`,
@@ -179,8 +153,8 @@ export function buildSearchIndex(
     kind: "workspace" as const,
     title: w.name,
     subtitle: w.description,
-    href: `/workspaces`,
-    keywords: `${w.name} ${w.description}`,
+    href: `/workspaces/${w.id}`,
+    keywords: `${w.name} ${w.description} ${w.projectCode ?? ""}`,
   }));
 
   const apResults: SearchResult[] = approvalItems.map((a) => ({
@@ -208,7 +182,6 @@ export function buildSearchIndex(
   return [
     ...pages,
     ...chatResults,
-    ...messageResults,
     ...postResults,
     ...people,
     ...skillResults,

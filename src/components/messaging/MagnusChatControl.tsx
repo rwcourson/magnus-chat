@@ -167,6 +167,7 @@ export function MagnusChatControl({
                     {recent.map((chat) => {
                       const active =
                         chat.id === activeChatId && pathname === "/";
+                      const masked = Boolean(chat.private) && !active;
                       return (
                         <li key={chat.id}>
                           <button
@@ -179,13 +180,21 @@ export function MagnusChatControl({
                                 : "text-[var(--text-secondary)] hover:bg-[var(--hover-fill)] hover:text-[var(--text-primary)]"
                             )}
                             data-history-chat={chat.id}
+                            data-chat-masked={masked ? "true" : undefined}
                           >
-                            <span className="truncate text-[13px] font-medium text-[var(--text-primary)]">
-                              {chat.title}
+                            <span
+                              className={cn(
+                                "truncate text-[13px] font-medium text-[var(--text-primary)]",
+                                masked && "italic text-[var(--text-muted)]"
+                              )}
+                            >
+                              {masked ? "Private" : chat.title}
                             </span>
-                            {chat.preview && (
+                            {(masked || chat.preview) && (
                               <span className="truncate text-[11.5px] text-[var(--text-muted)]">
-                                {chat.preview}
+                                {masked
+                                  ? "Hidden until opened"
+                                  : chat.preview}
                               </span>
                             )}
                           </button>

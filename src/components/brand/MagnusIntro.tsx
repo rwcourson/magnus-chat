@@ -130,7 +130,9 @@ export function MagnusIntro() {
             "bg-[var(--bg-deep)]",
             theme === "light"
               ? "text-[var(--navy,#0c2048)]"
-              : "text-white"
+              : theme === "magnus"
+                ? "text-[var(--accent,#47ffff)]"
+                : "text-white"
           )}
           data-magnus-intro
           data-theme={theme}

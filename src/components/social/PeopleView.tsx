@@ -3,10 +3,11 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowUpDown, Building2, Search, Users } from "lucide-react";
+import { ArrowUpDown, Building2, Users } from "lucide-react";
 import { peopleDirectory, type PersonProfile } from "@/lib/people-data";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { AvatarMark } from "@/components/ui/BrandMark";
+import { CatalogSearch } from "@/components/ui/CatalogSearch";
 import { cn } from "@/lib/utils";
 import { easeSpring } from "@/lib/motion";
 import { ICON_STROKE } from "@/lib/icons";
@@ -146,27 +147,14 @@ export function PeopleView() {
             )}
             data-people-filters
           >
-            <label className="relative block">
-              <Search
-                className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--text-muted)]"
-                strokeWidth={ICON_STROKE}
-              />
-              <input
-                type="search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search name, role, project…"
-                className={cn(
-                  "h-9 w-full rounded-xl border border-[var(--glass-border-soft)]",
-                  "bg-[var(--hover-fill)] pl-9 pr-3 text-[13px]",
-                  "text-[var(--text-primary)] placeholder:text-[var(--text-muted)] outline-none",
-                  "transition-[border-color] duration-150",
-                  "hover:border-[var(--glass-border)] focus:border-[var(--glass-border)]"
-                )}
-                data-people-search
-                aria-label="Search people"
-              />
-            </label>
+            <CatalogSearch
+              value={query}
+              onChange={setQuery}
+              placeholder="Search name, role, project…"
+              aria-label="Search people"
+              data-testid="people-search"
+              inputClassName="h-9 bg-[var(--hover-fill)] shadow-none"
+            />
 
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-1 text-[11.5px] font-medium text-[var(--text-muted)]">

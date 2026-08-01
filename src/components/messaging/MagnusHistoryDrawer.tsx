@@ -101,7 +101,7 @@ export function MagnusHistoryDrawer() {
               >
                 {filteredChats.length === 0 ? (
                   <p className="px-3 py-8 text-center text-[13px] text-[var(--text-muted)]">
-                    No AI chats yet. Start one or @magnus in a channel.
+                    No AI chats yet. Start a new Magnus chat.
                   </p>
                 ) : (
                   filteredChats.map((chat) => (

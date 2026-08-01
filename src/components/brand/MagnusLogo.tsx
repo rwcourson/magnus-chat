@@ -11,7 +11,7 @@ interface MagnusLogoProps {
    * Mark color treatment:
    * - white: always pure white (empty state / on dark canvas)
    * - navy: always deep navy (light surfaces)
-   * - sidebar: white in dark theme, navy in light theme
+   * - sidebar: theme-aware (white in dark, ice cyan in Magnus, navy in light)
    */
   tone?: LogoTone;
   /** @deprecated use tone="white" | tone="sidebar" */
@@ -19,7 +19,8 @@ interface MagnusLogoProps {
 }
 
 /**
- * Product mark (public/logo.png). Blue asset → monochrome via CSS filter.
+ * Product mark (public/logo.png). Colored via CSS mask + background
+ * so each theme can hit an exact hex (e.g. Magnus #47ffff).
  */
 export function MagnusLogo({
   className,
@@ -32,27 +33,18 @@ export function MagnusLogo({
 
   return (
     <span
+      role="img"
+      aria-label="Magnus"
       className={cn(
         "relative inline-flex shrink-0 items-center justify-center",
+        "logo-mark",
+        resolved === "white" && "logo-mark-white",
+        resolved === "navy" && "logo-mark-navy",
+        resolved === "sidebar" && "logo-mark-sidebar",
         className
       )}
       style={{ width: size, height: size }}
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/logo.png"
-        alt="Magnus"
-        width={size}
-        height={size}
-        className={cn(
-          "relative z-10 object-contain select-none",
-          resolved === "white" && "logo-mark-white",
-          resolved === "navy" && "logo-mark-navy",
-          resolved === "sidebar" && "logo-mark-sidebar"
-        )}
-        draggable={false}
-      />
-    </span>
+    />
   );
 }
 

@@ -1,16 +1,18 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { FolderKanban, Files, MessageSquare, Plus, Search } from "lucide-react";
+import { FolderKanban, Files, MessageSquare, Plus } from "lucide-react";
 import type { WorkspaceItem } from "@/types/catalog";
-import { workspaces as defaultWorkspaces } from "@/lib/catalog-data";
-import {
-  createWorkspaceItem,
-  prependCatalogItem,
-} from "@/lib/catalog-create";
+import { listWorkspaces } from "@/lib/catalog-data";
+import { createAndRegisterWorkspace } from "@/lib/catalog-create";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { AvatarMark } from "@/components/ui/BrandMark";
+import {
+  CatalogSearch,
+  matchesCatalogQuery,
+} from "@/components/ui/CatalogSearch";
 import { useToast } from "@/context/ToastContext";
 import { formatFeedTime } from "@/lib/feed";
 import { cn } from "@/lib/utils";
@@ -21,30 +23,32 @@ import { ScrollFade } from "@/components/ui/ScrollFade";
 const NOW = Date.parse("2026-07-23T19:00:00Z");
 
 function matchesQuery(ws: WorkspaceItem, q: string): boolean {
-  if (!q) return true;
-  const hay = [
-    ws.name,
-    ws.description,
-    ws.projectCode ?? "",
-    ...ws.members.map((m) => `${m.name} ${m.initials}`),
-  ]
-    .join(" ")
-    .toLowerCase();
-  return hay.includes(q);
+  return matchesCatalogQuery(
+    [
+      ws.name,
+      ws.description,
+      ws.projectCode,
+      ...ws.members.map((m) => `${m.name} ${m.initials}`),
+    ],
+    q
+  );
 }
 
 /**
  * Simple project list — small icon thumbnails, not banner covers.
  */
 export function WorkspacesView({
-  items = defaultWorkspaces,
+  items,
   nowMs = NOW,
 }: {
+  /** Optional override; default is shared registry (seed + created). */
   items?: WorkspaceItem[];
   nowMs?: number;
 }) {
   const { toast } = useToast();
-  const [list, setList] = useState<WorkspaceItem[]>(items);
+  const [list, setList] = useState<WorkspaceItem[]>(
+    () => items ?? listWorkspaces()
+  );
   const [query, setQuery] = useState("");
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState("");
@@ -63,7 +67,7 @@ export function WorkspacesView({
   };
 
   const submitCreate = () => {
-    const item = createWorkspaceItem({
+    const item = createAndRegisterWorkspace({
       name,
       projectCode: code || undefined,
     });
@@ -71,7 +75,8 @@ export function WorkspacesView({
       toast({ title: "Name is required", tone: "danger", duration: 2000 });
       return;
     }
-    setList((prev) => prependCatalogItem(prev, item));
+    // Re-read registry so list and detail share the same source of truth
+    setList(listWorkspaces());
     setCreating(false);
     setQuery("");
     toast({
@@ -176,31 +181,14 @@ export function WorkspacesView({
             )}
           </AnimatePresence>
 
-          {/* Full-width search — text vertically centered */}
-          <div className="relative mb-4 w-full">
-            <Search
-              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]"
-              strokeWidth={ICON_STROKE}
-              aria-hidden
-            />
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search projects, codes, people…"
-              className={cn(
-                "box-border h-10 w-full rounded-xl",
-                "border border-[var(--glass-border-soft)] bg-[var(--glass-strong-solid)]",
-                "py-0 pl-10 pr-3 text-[13.5px] font-medium leading-none",
-                "text-[var(--text-primary)] placeholder:font-normal placeholder:text-[var(--text-muted)]",
-                "shadow-[var(--shadow-sm)] outline-none",
-                "transition-[border-color] duration-150",
-                "hover:border-[var(--glass-border)] focus:border-[var(--glass-border)]"
-              )}
-              aria-label="Search workspaces"
-              data-workspaces-search
-            />
-          </div>
+          <CatalogSearch
+            value={query}
+            onChange={setQuery}
+            placeholder="Search projects, codes, people…"
+            aria-label="Search workspaces"
+            className="mb-4"
+            data-testid="workspaces-search"
+          />
 
           {filtered.length === 0 ? (
             <div
@@ -236,84 +224,90 @@ export function WorkspacesView({
                     ease: easeSpring,
                   }}
                 >
-                  <article
-                    className={cn(
-                      "group flex items-center gap-3 rounded-2xl px-2.5 py-2.5",
-                      "border border-[var(--glass-border-soft)] bg-[var(--glass-strong-solid)]",
-                      "shadow-[var(--shadow-sm)] transition-[border-color,box-shadow,background] duration-150",
-                      "hover:border-[var(--glass-border)] hover:bg-[var(--hover-fill)]/40 hover:shadow-[var(--shadow-md)]"
-                    )}
-                    data-workspace-card
-                    data-workspace-id={ws.id}
-                    data-cover-url={ws.coverUrl}
+                  <Link
+                    href={`/workspaces/${ws.id}`}
+                    className="block"
+                    data-workspace-open
                   >
-                    <div
+                    <article
                       className={cn(
-                        "relative h-11 w-11 shrink-0 overflow-hidden rounded-xl",
-                        "ring-1 ring-[var(--glass-border-soft)]"
+                        "group flex items-center gap-3 rounded-2xl px-2.5 py-2.5",
+                        "border border-[var(--glass-border-soft)] bg-[var(--glass-strong-solid)]",
+                        "shadow-[var(--shadow-sm)] transition-[border-color,box-shadow,background] duration-150",
+                        "hover:border-[var(--glass-border)] hover:bg-[var(--hover-fill)]/40 hover:shadow-[var(--shadow-md)]"
                       )}
+                      data-workspace-card
+                      data-workspace-id={ws.id}
+                      data-cover-url={ws.coverUrl}
                     >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={ws.coverUrl}
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <div className="flex min-w-0 items-baseline gap-2">
-                        <h2 className="truncate text-[14px] font-semibold tracking-tight text-[var(--text-primary)]">
-                          {ws.name}
-                        </h2>
-                        {ws.projectCode && (
-                          <span className="shrink-0 text-[11px] font-medium tabular-nums text-[var(--text-muted)]">
-                            {ws.projectCode}
-                          </span>
+                      <div
+                        className={cn(
+                          "relative h-11 w-11 shrink-0 overflow-hidden rounded-xl",
+                          "ring-1 ring-[var(--glass-border-soft)]"
                         )}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={ws.coverUrl}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
                       </div>
-                      <p className="mt-0.5 line-clamp-1 text-[12.5px] leading-snug text-[var(--text-secondary)]">
-                        {ws.description}
-                      </p>
-                      <div className="mt-1.5 flex items-center gap-3">
-                        <div className="flex items-center -space-x-1.5">
-                          {ws.members.slice(0, 3).map((m) => (
-                            <AvatarMark
-                              key={m.initials + m.name}
-                              src={m.avatarUrl}
-                              initials={m.initials}
-                              size={20}
-                              className="ring-2 ring-[var(--glass-strong-solid)]"
-                            />
-                          ))}
-                          {ws.members.length > 3 && (
-                            <span className="flex h-5 w-5 items-center justify-center rounded-md bg-[var(--hover-fill-strong)] text-[9px] font-semibold text-[var(--text-muted)] ring-2 ring-[var(--glass-strong-solid)]">
-                              +{ws.members.length - 3}
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex min-w-0 items-baseline gap-2">
+                          <h2 className="truncate text-[14px] font-semibold tracking-tight text-[var(--text-primary)]">
+                            {ws.name}
+                          </h2>
+                          {ws.projectCode && (
+                            <span className="shrink-0 text-[11px] font-medium tabular-nums text-[var(--text-muted)]">
+                              {ws.projectCode}
                             </span>
                           )}
                         </div>
-                        <div className="flex items-center gap-2.5 text-[11px] text-[var(--text-muted)]">
-                          <span className="inline-flex items-center gap-0.5">
-                            <MessageSquare
-                              className="h-3 w-3"
-                              strokeWidth={ICON_STROKE}
-                            />
-                            {ws.chats}
-                          </span>
-                          <span className="inline-flex items-center gap-0.5">
-                            <Files
-                              className="h-3 w-3"
-                              strokeWidth={ICON_STROKE}
-                            />
-                            {ws.files}
-                          </span>
-                          <span className="tabular-nums">
-                            {formatFeedTime(ws.updatedAt, nowMs)}
-                          </span>
+                        <p className="mt-0.5 line-clamp-1 text-[12.5px] leading-snug text-[var(--text-secondary)]">
+                          {ws.description}
+                        </p>
+                        <div className="mt-1.5 flex items-center gap-3">
+                          <div className="flex items-center -space-x-1.5">
+                            {ws.members.slice(0, 3).map((m) => (
+                              <AvatarMark
+                                key={m.initials + m.name}
+                                src={m.avatarUrl}
+                                initials={m.initials}
+                                size={20}
+                                className="ring-2 ring-[var(--glass-strong-solid)]"
+                              />
+                            ))}
+                            {ws.members.length > 3 && (
+                              <span className="flex h-5 w-5 items-center justify-center rounded-md bg-[var(--hover-fill-strong)] text-[9px] font-semibold text-[var(--text-muted)] ring-2 ring-[var(--glass-strong-solid)]">
+                                +{ws.members.length - 3}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2.5 text-[11px] text-[var(--text-muted)]">
+                            <span className="inline-flex items-center gap-0.5">
+                              <MessageSquare
+                                className="h-3 w-3"
+                                strokeWidth={ICON_STROKE}
+                              />
+                              {ws.chats}
+                            </span>
+                            <span className="inline-flex items-center gap-0.5">
+                              <Files
+                                className="h-3 w-3"
+                                strokeWidth={ICON_STROKE}
+                              />
+                              {ws.files}
+                            </span>
+                            <span className="tabular-nums">
+                              {formatFeedTime(ws.updatedAt, nowMs)}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </article>
+                    </article>
+                  </Link>
                 </motion.li>
               ))}
             </ul>

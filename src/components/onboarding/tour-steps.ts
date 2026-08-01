@@ -1,6 +1,6 @@
 /**
  * First-run tour steps — light orientation only.
- * No search stop; includes Messages + Feed; Chat mode opens a Magnus chat.
+ * No search stop; includes Chat + Feed; Chat mode opens a Magnus chat.
  */
 
 export type TourPlacement = "auto" | "right" | "left" | "bottom" | "top";
@@ -30,7 +30,7 @@ export type TourStep = {
 
 /**
  * Ordered tour (≤6).
- * Messages + Feed while still on Home, then Home/Chat switch → open a chat.
+ * Chat + Feed while still on Home, then Home/Chat switch → open a chat.
  * (Ask Magnus is the mode switch at the top — not the home page composer.)
  */
 export const TOUR_STEPS: readonly TourStep[] = [
@@ -54,9 +54,9 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     id: "messages",
-    selector: '[data-tour-target="messages"]',
-    title: "Work with people",
-    body: "Channels and DMs live here — Magnus can join the conversation.",
+    selector: "[data-sidebar-top-mode]",
+    title: "Talk with Magnus",
+    body: "Use the Home / Chat switch for AI conversations, history, skills, and routines.",
     placement: "right",
     needsSidebar: true,
     requireHomeMode: true,
@@ -65,8 +65,8 @@ export const TOUR_STEPS: readonly TourStep[] = [
   {
     id: "feed",
     selector: '[data-tour-target="feed"]',
-    title: "Company pulse",
-    body: "Team posts and news — stay connected without leaving Magnus.",
+    title: "B&G Live",
+    body: "Company-wide live chat — short updates, questions, and heads-ups. Not a social feed.",
     placement: "right",
     needsSidebar: true,
     requireHomeMode: true,
@@ -76,7 +76,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
     id: "chat-mode",
     selector: "[data-sidebar-top-mode]",
     title: "Ask Magnus",
-    body: "Switch to Chat anytime to talk with Magnus — drafts, knowledge, and more.",
+    body: "Switch to Chat anytime — history, skills, routines, and workspaces live here.",
     placement: "right",
     needsSidebar: true,
     requireHomeMode: true,

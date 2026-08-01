@@ -1,8 +1,8 @@
 import type { ActionTile, NewsStory } from "@/types/home";
 
 /**
- * Hero news for the intranet home carousel (above the fold).
- * Photo-forward — channel consensus: news must not be buried.
+ * Hero company updates for the intranet home (above the fold).
+ * Photo-forward news / company communications — not a personal task inbox.
  */
 export const newsStories: NewsStory[] = [
   {
@@ -15,7 +15,7 @@ export const newsStories: NewsStory[] = [
       "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1200&h=640&fit=crop",
     href: "/feed",
     timeLabel: "2h",
-    reason: "Popular with your division",
+    reason: "Company-wide",
   },
   {
     id: "ns-2",
@@ -27,7 +27,7 @@ export const newsStories: NewsStory[] = [
       "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=1200&h=640&fit=crop",
     href: "/feed",
     timeLabel: "4h",
-    reason: "Your project team reacted",
+    reason: "Project update",
   },
   {
     id: "ns-3",
@@ -39,6 +39,7 @@ export const newsStories: NewsStory[] = [
       "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=1200&h=640&fit=crop",
     href: "/feed",
     timeLabel: "Yesterday",
+    reason: "Ops bulletin",
   },
   {
     id: "ns-4",
@@ -50,6 +51,7 @@ export const newsStories: NewsStory[] = [
       "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1200&h=640&fit=crop",
     href: "/feed",
     timeLabel: "2d",
+    reason: "Company update",
   },
 ];
 

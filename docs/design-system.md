@@ -49,7 +49,7 @@ Approximate sizes used across screens (Tailwind / rem):
 
 ## 3. Color system
 
-Theme is switched with `html[data-theme="dark" | "light"]` (default dark). Prefer **CSS variables**, not hard-coded hex in components.
+Theme is switched with `html[data-theme="dark" | "magnus" | "light"]` (default **magnus**). Prefer **CSS variables**, not hard-coded hex in components.
 
 ### 3.1 Brand anchors
 
@@ -58,11 +58,16 @@ Theme is switched with `html[data-theme="dark" | "light"]` (default dark). Prefe
 | **B&G navy** | `#0c2048` | Light-mode primary fill, links, selection text |
 | **Navy hover** | `#16356e` | Primary hover in light |
 | **Navy deep** | `#081530` | Deep accent / hover text |
-| **Dark canvas** | `#161e2e` | App background mid |
-| **Dark deep** | `#121826` | Canvas bottom / deep |
-| **Dark elevated** | `#1e283c` | Raised panels |
+| **Dark canvas** | `#161e2e` | App background mid (navy dark theme) |
+| **Dark deep** | `#121826` | Canvas bottom / deep (navy dark theme) |
+| **Dark elevated** | `#1e283c` | Raised panels (navy dark theme) |
 | **Soft primary (dark UI)** | `#4a5f88` | Ask Magnus / primary buttons in dark |
 | **Soft primary hover** | `#5a70a0` | Primary hover in dark |
+| **Magnus canvas** | `#2c2c2c` | Charcoal Magnus theme mid surface |
+| **Magnus deep** | `#222222` | Charcoal Magnus theme deep / sidebar |
+| **Magnus elevated** | `#363636` | Raised panels in Magnus |
+| **Soft primary (Magnus)** | `#4a4a4a` | Primary buttons in Magnus |
+| **Magnus ice accent** | `#47ffff` | Logo + rare accent only; soft/ring stay low-alpha |
 
 ### 3.2 Semantic tokens (both themes)
 
@@ -193,13 +198,15 @@ Prefer **opacity + small x/y**; avoid layout thrash that reflows the whole page.
 ## 7. Theme behavior
 
 ```html
-<html data-theme="dark" class="dark">  <!-- default -->
-<html data-theme="light">
+<html data-theme="magnus" class="dark magnus">  <!-- default (charcoal #2c2c2c / #222222) -->
+<html data-theme="dark" class="dark">  <!-- mid-navy -->
+<html data-theme="light" class="light">
 ```
 
 - Persist preference in app (localStorage via theme context).
+- Toggle cycles `magnus → dark → light → magnus`.
 - Favicon swaps: light mark on dark chrome, dark/navy mark on light chrome.
-- Logo monochrome via CSS filters (white on dark, navy on light)—see `.logo-mark-sidebar`.
+- Logo monochrome via CSS filters (white on dark/Magnus, navy on light)—see `.logo-mark-sidebar`.
 
 ---
 
@@ -213,7 +220,7 @@ Prefer **opacity + small x/y**; avoid layout thrash that reflows the whole page.
 
 ## 9. Porting checklist (new project)
 
-1. **Copy token blocks** from `globals.css` (`:root` / dark + `html[data-theme="light"]`).
+1. **Copy token blocks** from `globals.css` (`:root` / dark + Magnus + `html[data-theme="light"]`).
 2. **Load Inter + Geist Mono**; wire `--font-inter` / mono only for code.
 3. **Implement** `.btn-primary`, `.btn-solid`, glass panel utilities, scroll-fade if needed.
 4. **Avatar system:** rounded-square portraits only; fixed max sizes.

@@ -87,6 +87,8 @@ interface ChatContextValue {
   /** Edit a user message and resubmit from that point. */
   editAndResend: (messageId: string, content: string) => void;
   renameChat: (id: string, title: string) => void;
+  /** Mask title as “Private” in lists until the chat is open. */
+  setChatPrivate: (id: string, isPrivate: boolean) => void;
   archiveChat: (id: string) => void;
   unarchiveChat: (id: string) => void;
   deleteChat: (id: string) => void;
@@ -352,6 +354,20 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           ? {
               ...c,
               title: next.length > 80 ? `${next.slice(0, 78)}…` : next,
+              updatedAt: new Date().toISOString(),
+            }
+          : c
+      )
+    );
+  }, []);
+
+  const setChatPrivate = useCallback((id: string, isPrivate: boolean) => {
+    setChats((prev) =>
+      prev.map((c) =>
+        c.id === id
+          ? {
+              ...c,
+              private: isPrivate,
               updatedAt: new Date().toISOString(),
             }
           : c
@@ -836,6 +852,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     regenerate,
     editAndResend,
     renameChat,
+    setChatPrivate,
     archiveChat,
     unarchiveChat,
     deleteChat,

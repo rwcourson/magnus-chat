@@ -1,7 +1,22 @@
 "use client";
 
-import { InsightsView } from "@/components/insights/InsightsView";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useChat } from "@/context/ChatContext";
 
+/** Insights surface removed — send people home. */
 export default function InsightsPage() {
-  return <InsightsView />;
+  const router = useRouter();
+  const { goHome } = useChat();
+
+  useEffect(() => {
+    goHome();
+    router.replace("/");
+  }, [goHome, router]);
+
+  return (
+    <div className="flex h-full items-center justify-center text-[13px] text-[var(--text-muted)]">
+      Redirecting…
+    </div>
+  );
 }

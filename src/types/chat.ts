@@ -109,8 +109,8 @@ export interface ChatThread {
   /** Hidden from the main chat list when true */
   archived?: boolean;
   /**
-   * Sensitive / 1:1 thread — list UI may mask title until open.
-   * Used by person-profile Message chats.
+   * Sensitive / 1:1 thread — list UI may mask title until open
+   * (or while renaming). Used by person-profile Message and private toggles.
    */
   private?: boolean;
 }

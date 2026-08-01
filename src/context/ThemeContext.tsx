@@ -9,7 +9,22 @@ import {
   type ReactNode,
 } from "react";
 
-export type Theme = "dark" | "light";
+export type Theme = "dark" | "magnus" | "light";
+
+/** Default on first visit (no stored preference). */
+export const DEFAULT_THEME: Theme = "magnus";
+
+/** Cycle order for sidebar / command palette toggle. */
+export const THEME_CYCLE: Theme[] = ["magnus", "dark", "light"];
+
+export function nextTheme(current: Theme): Theme {
+  const i = THEME_CYCLE.indexOf(current);
+  return THEME_CYCLE[(i + 1) % THEME_CYCLE.length]!;
+}
+
+export function isDarkTheme(theme: Theme): boolean {
+  return theme === "dark" || theme === "magnus";
+}
 
 interface ThemeContextValue {
   theme: Theme;
@@ -21,15 +36,19 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export const THEME_STORAGE_KEY = "magnus-theme";
 
+function isTheme(value: string | null): value is Theme {
+  return value === "light" || value === "dark" || value === "magnus";
+}
+
 function readStoredTheme(): Theme {
-  if (typeof window === "undefined") return "dark";
+  if (typeof window === "undefined") return DEFAULT_THEME;
   try {
     const stored = localStorage.getItem(THEME_STORAGE_KEY);
-    if (stored === "light" || stored === "dark") return stored;
+    if (isTheme(stored)) return stored;
   } catch {
     /* ignore */
   }
-  return "dark";
+  return DEFAULT_THEME;
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
@@ -46,8 +65,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     if (!ready) return;
     const root = document.documentElement;
     root.dataset.theme = theme;
-    root.classList.toggle("dark", theme === "dark");
+    root.classList.toggle("dark", isDarkTheme(theme));
     root.classList.toggle("light", theme === "light");
+    root.classList.toggle("magnus", theme === "magnus");
     try {
       localStorage.setItem(THEME_STORAGE_KEY, theme);
     } catch {
@@ -57,7 +77,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const setTheme = useCallback((t: Theme) => setThemeState(t), []);
   const toggleTheme = useCallback(() => {
-    setThemeState((t) => (t === "dark" ? "light" : "dark"));
+    setThemeState((t) => nextTheme(t));
   }, []);
 
   return (

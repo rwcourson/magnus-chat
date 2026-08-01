@@ -103,8 +103,9 @@ function main() {
     "WorkspacesView needs New workspace CTA"
   );
   assert.ok(
-    workspacesView.includes("createWorkspaceItem"),
-    "WorkspacesView must call createWorkspaceItem"
+    workspacesView.includes("createAndRegisterWorkspace") ||
+      workspacesView.includes("createWorkspaceItem"),
+    "WorkspacesView must create workspaces via catalog-create helpers"
   );
   assert.ok(
     /data-workspaces-empty|data-workspaces-empty-cta/.test(workspacesView),

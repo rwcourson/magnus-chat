@@ -108,7 +108,7 @@ function main() {
   );
   assert.equal(
     steps.find((s) => s.id === "messages")?.selector,
-    '[data-tour-target="messages"]'
+    "[data-sidebar-top-mode]"
   );
   assert.equal(
     steps.find((s) => s.id === "feed")?.selector,

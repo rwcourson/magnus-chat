@@ -5,14 +5,19 @@
 
 export type HomeNavId =
   | "home"
-  | "messages"
   | "feed"
   | "people"
   | "notifications"
-  | "comms" // legacy id — label Insights
-  | "knowledge";
+  | "workspaces";
 
-export type ChatSidebarId = "magnusChat" | "channels" | "dms";
+/** Chat-mode sections (Magnus-centric; team channels/DMs removed for now). */
+export type ChatSidebarId =
+  | "magnusChat"
+  | "history"
+  | "skills"
+  | "routines"
+  | "integrations"
+  | "workspaces";
 
 export type SidebarPrefs = {
   homeOrder: HomeNavId[];
@@ -34,27 +39,17 @@ export const HOME_NAV_CATALOG: {
     description: "Intranet landing",
     locked: true,
   },
-  {
-    id: "messages",
-    label: "Messages",
-    description: "Team channels & DMs",
-  },
-  { id: "feed", label: "Feed", description: "Company news" },
+  { id: "feed", label: "B&G Live", description: "Company-wide live chat" },
   { id: "people", label: "People", description: "Directory" },
+  {
+    id: "workspaces",
+    label: "Workspaces",
+    description: "Knowledge hubs",
+  },
   {
     id: "notifications",
     label: "Notifications",
     description: "Activity inbox",
-  },
-  {
-    id: "comms",
-    label: "Insights",
-    description: "Leadership pulse & story desk",
-  },
-  {
-    id: "knowledge",
-    label: "Knowledge",
-    description: "Workspaces hub",
   },
 ];
 
@@ -62,36 +57,84 @@ export const CHAT_SIDEBAR_CATALOG: {
   id: ChatSidebarId;
   label: string;
   description: string;
+  href?: string;
 }[] = [
   {
     id: "magnusChat",
     label: "Magnus Chat",
-    description: "New AI chat + history control",
+    description: "New AI chat control (footer)",
   },
   {
-    id: "channels",
-    label: "Channels",
-    description: "Team channel list",
+    id: "skills",
+    label: "Skills",
+    description: "Agent skills & prompts",
+    href: "/skills",
   },
   {
-    id: "dms",
-    label: "Direct messages",
-    description: "1:1 conversations",
+    id: "routines",
+    label: "Routines",
+    description: "Scheduled Magnus runs",
+    href: "/routines",
+  },
+  {
+    id: "workspaces",
+    label: "Workspaces",
+    description: "Knowledge hubs",
+    href: "/workspaces",
+  },
+  {
+    id: "integrations",
+    label: "Integrations",
+    description: "Connectors & apps",
+    href: "/integrations",
+  },
+  {
+    id: "history",
+    label: "Chat history",
+    description: "Recent Magnus threads",
   },
 ];
 
 export const DEFAULT_SIDEBAR_PREFS: SidebarPrefs = {
-  homeOrder: HOME_NAV_CATALOG.map((i) => i.id),
-  homeVisible: Object.fromEntries(
-    HOME_NAV_CATALOG.map((i) => [i.id, true])
-  ) as Record<HomeNavId, boolean>,
-  chatOrder: CHAT_SIDEBAR_CATALOG.map((i) => i.id),
-  chatVisible: Object.fromEntries(
-    CHAT_SIDEBAR_CATALOG.map((i) => [i.id, true])
-  ) as Record<ChatSidebarId, boolean>,
+  homeOrder: ["home", "feed", "people", "workspaces", "notifications"],
+  homeVisible: {
+    home: true,
+    feed: true,
+    people: true,
+    workspaces: true,
+    notifications: true,
+  },
+  // Tools first, history last; integrations off by default (setup-ish)
+  chatOrder: [
+    "magnusChat",
+    "skills",
+    "routines",
+    "workspaces",
+    "integrations",
+    "history",
+  ],
+  chatVisible: {
+    magnusChat: true,
+    skills: true,
+    routines: true,
+    workspaces: true,
+    integrations: false,
+    history: true,
+  },
 };
 
-export const SIDEBAR_PREFS_KEY = "magnus-sidebar-prefs-v1";
+/** v3: Home = company nav; Chat = Magnus tools + history. */
+export const SIDEBAR_PREFS_KEY = "magnus-sidebar-prefs-v3";
+
+/** Map legacy home ids from older pref versions. */
+function mapLegacyHomeId(id: string): HomeNavId | null {
+  if (id === "knowledge" || id === "messages" || id === "approvals") {
+    // knowledge → workspaces; messages/approvals dropped from home nav
+    return id === "knowledge" ? "workspaces" : null;
+  }
+  const known = new Set(HOME_NAV_CATALOG.map((i) => i.id));
+  return known.has(id as HomeNavId) ? (id as HomeNavId) : null;
+}
 
 /** Merge stored partial prefs with defaults (safe hydrate). */
 export function normalizeSidebarPrefs(
@@ -101,10 +144,11 @@ export function normalizeSidebarPrefs(
   if (!raw || typeof raw !== "object") return base;
 
   if (Array.isArray(raw.homeOrder)) {
-    const known = new Set(HOME_NAV_CATALOG.map((i) => i.id));
-    const order = raw.homeOrder.filter((id): id is HomeNavId =>
-      known.has(id as HomeNavId)
-    );
+    const order: HomeNavId[] = [];
+    for (const id of raw.homeOrder) {
+      const mapped = mapLegacyHomeId(String(id));
+      if (mapped && !order.includes(mapped)) order.push(mapped);
+    }
     for (const id of base.homeOrder) {
       if (!order.includes(id)) order.push(id);
     }
@@ -112,9 +156,14 @@ export function normalizeSidebarPrefs(
   }
 
   if (raw.homeVisible && typeof raw.homeVisible === "object") {
+    const vis = raw.homeVisible as Record<string, boolean | undefined>;
+    // Legacy knowledge visibility → workspaces
+    if (typeof vis.knowledge === "boolean" && vis.workspaces === undefined) {
+      base.homeVisible.workspaces = vis.knowledge;
+    }
     for (const id of base.homeOrder) {
-      if (typeof raw.homeVisible[id] === "boolean") {
-        base.homeVisible[id] = raw.homeVisible[id]!;
+      if (typeof vis[id] === "boolean") {
+        base.homeVisible[id] = vis[id]!;
       }
     }
   }
@@ -157,6 +206,27 @@ export function isChatSectionVisible(
   id: ChatSidebarId
 ): boolean {
   return prefs.chatVisible[id] !== false;
+}
+
+/** Catalog tool rows for Chat mode (excludes magnusChat footer + history list). */
+export function visibleChatToolLinks(
+  prefs: SidebarPrefs
+): { id: ChatSidebarId; label: string; href: string }[] {
+  return prefs.chatOrder
+    .filter(
+      (id) =>
+        id !== "magnusChat" &&
+        id !== "history" &&
+        isChatSectionVisible(prefs, id)
+    )
+    .map((id) => {
+      const meta = CHAT_SIDEBAR_CATALOG.find((c) => c.id === id)!;
+      return {
+        id,
+        label: meta.label,
+        href: meta.href ?? `/${id}`,
+      };
+    });
 }
 
 /** Move item in order array by delta (-1 up, +1 down). */

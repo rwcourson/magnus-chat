@@ -305,7 +305,7 @@ export const feedNotifications: FeedNotification[] = [
     createdAt: "2026-07-22T20:00:00Z",
     read: true,
     actor: peopleDirectory[1],
-    href: "/workspaces",
+    href: "/workspaces/ws-tower",
   },
   {
     id: "n-6",

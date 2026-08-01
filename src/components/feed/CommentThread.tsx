@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { ImageIcon, Send, Video, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowUp, ImageIcon, Video, X } from "lucide-react";
 import type { CommentMedia, FeedAuthor, FeedComment } from "@/types/feed";
 import {
   appendFeedComment,
@@ -40,11 +40,13 @@ interface CommentThreadProps {
    * outside a scroll fade (no bottom gradient over the input).
    */
   pinComposer?: boolean;
+  /** Auto-focus reply field when the thread mounts / opens */
+  autoFocus?: boolean;
   className?: string;
 }
 
 /**
- * Nested comment thread with reply + optional demo photo/video.
+ * Nested reply thread for B&G Live messages.
  */
 export function CommentThread({
   postId,
@@ -52,12 +54,20 @@ export function CommentThread({
   onChange,
   nowMs,
   pinComposer = false,
+  autoFocus = true,
   className,
 }: CommentThreadProps) {
   const roots = useMemo(() => getRootComments(comments), [comments]);
   const [draft, setDraft] = useState("");
   const [media, setMedia] = useState<CommentMedia | undefined>();
   const [replyTo, setReplyTo] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!autoFocus) return;
+    const t = window.setTimeout(() => inputRef.current?.focus(), 60);
+    return () => window.clearTimeout(t);
+  }, [autoFocus, replyTo, postId]);
 
   const submit = () => {
     const next = appendFeedComment(comments, {
@@ -72,6 +82,7 @@ export function CommentThread({
     setDraft("");
     setMedia(undefined);
     setReplyTo(null);
+    window.setTimeout(() => inputRef.current?.focus(), 30);
   };
 
   const attachImage = () => {
@@ -96,10 +107,10 @@ export function CommentThread({
     : undefined;
 
   const list = (
-    <div className="space-y-3 pt-2" data-comments-list>
+    <div className="space-y-2.5 pt-1" data-comments-list>
       {roots.length === 0 ? (
-        <p className="text-center text-[12.5px] text-[var(--text-muted)]">
-          No comments yet — be the first.
+        <p className="px-1 py-3 text-center text-[12.5px] text-[var(--text-muted)]">
+          No replies yet — jump in.
         </p>
       ) : (
         roots.map((c) => (
@@ -124,7 +135,7 @@ export function CommentThread({
           <span>
             Replying to{" "}
             <span className="font-medium text-[var(--text-secondary)]">
-              @{replyTarget.author.handle}
+              {replyTarget.author.name}
             </span>
           </span>
           <button
@@ -167,9 +178,17 @@ export function CommentThread({
       )}
 
       <div className="flex items-center gap-2">
-        <AvatarMark src={me.avatarUrl} initials={me.initials} size={32} />
-        <div className="flex min-w-0 flex-1 items-center gap-1 rounded-full border border-[var(--glass-border-soft)] bg-[var(--hover-fill)] pl-3 pr-1">
+        <AvatarMark src={me.avatarUrl} initials={me.initials} size={30} />
+        <div
+          className={cn(
+            "flex min-w-0 flex-1 items-center gap-1 rounded-full",
+            "border border-[var(--glass-border)] bg-[var(--glass-fill-composer)]",
+            "pl-3 pr-1 shadow-[var(--shadow-composer)]",
+            "backdrop-blur-xl"
+          )}
+        >
           <input
+            ref={inputRef}
             type="text"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
@@ -178,9 +197,15 @@ export function CommentThread({
                 e.preventDefault();
                 submit();
               }
+              if (e.key === "Escape" && replyTo) {
+                e.preventDefault();
+                setReplyTo(null);
+              }
             }}
-            placeholder={replyTo ? "Write a reply…" : "Leave a comment…"}
-            aria-label={replyTo ? "Write a reply" : "Leave a comment"}
+            placeholder={
+              replyTo ? "Write a reply…" : "Reply on B&G Live…"
+            }
+            aria-label={replyTo ? "Write a reply" : "Reply on B&G Live"}
             className="h-9 min-w-0 flex-1 bg-transparent text-[13px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] outline-none"
             data-comment-input
           />
@@ -208,7 +233,7 @@ export function CommentThread({
             type="button"
             onClick={submit}
             disabled={!draft.trim() && !media}
-            aria-label="Post comment"
+            aria-label="Post reply"
             className={cn(
               "inline-flex h-7 w-7 items-center justify-center rounded-full",
               "transition-colors duration-150",
@@ -218,7 +243,7 @@ export function CommentThread({
             )}
             data-comment-submit
           >
-            <Send className="h-3.5 w-3.5" strokeWidth={ICON_STROKE} />
+            <ArrowUp className="h-3.5 w-3.5" strokeWidth={2.2} />
           </button>
         </div>
       </div>
@@ -232,7 +257,6 @@ export function CommentThread({
         data-comments-panel
         data-pin-composer
       >
-        {/* Scroll list only — hideBottom so no fade over the reply bar */}
         <ScrollFade
           className="min-h-0 flex-1"
           size="sm"
@@ -242,7 +266,7 @@ export function CommentThread({
           {list}
         </ScrollFade>
         <div
-          className="shrink-0 border-t border-[var(--glass-border-soft)] bg-[var(--glass-strong-solid)] px-3 py-2.5"
+          className="shrink-0 px-3 py-2.5"
           data-comments-composer-dock
         >
           {composer}
@@ -252,7 +276,7 @@ export function CommentThread({
   }
 
   return (
-    <div className={cn("space-y-3 pt-2", className)} data-comments-panel>
+    <div className={cn("space-y-3 pt-1", className)} data-comments-panel>
       {list}
       {composer}
     </div>
@@ -274,7 +298,7 @@ function CommentNode({
     <div className="space-y-2" data-comment-id={comment.id}>
       <CommentBubble comment={comment} nowMs={nowMs} onReply={onReply} />
       {replies.length > 0 && (
-        <div className="ml-4 space-y-2 border-l border-[var(--glass-border-soft)] pl-3 sm:ml-6">
+        <div className="ml-3 space-y-2 border-l border-[var(--glass-border-soft)] pl-3 sm:ml-5">
           {replies.map((r) => (
             <CommentBubble
               key={r.id}
@@ -303,30 +327,34 @@ function CommentBubble({
 }) {
   return (
     <div
-      className={cn(
-        "rounded-2xl bg-[var(--hover-fill)]/60 px-3 py-2.5",
-        nested && "bg-[var(--hover-fill)]/40"
-      )}
+      className={cn("px-0.5 py-0.5", nested && "opacity-95")}
+      data-comment-bubble
     >
-      <div className="flex gap-2.5">
+      <div className="flex gap-2">
         <AvatarMark
           src={comment.author.avatarUrl}
           initials={comment.author.initials}
-          size={nested ? 28 : 32}
+          size={nested ? 26 : 30}
         />
         <div className="min-w-0 flex-1">
-          <p className="text-[12.5px] leading-snug">
+          <p className="text-[12px] leading-snug">
             <span className="font-semibold text-[var(--text-primary)]">
               {comment.author.name}
-            </span>{" "}
-            <span className="text-[var(--text-muted)]">
-              @{comment.author.handle}
-            </span>{" "}
+            </span>
+            {comment.author.office && (
+              <>
+                {" "}
+                <span className="text-[var(--text-muted)]">
+                  · {comment.author.office}
+                </span>
+              </>
+            )}
+            {" "}
             <span className="text-[var(--text-muted)]">
               · {formatFeedTime(comment.createdAt, nowMs)}
             </span>
           </p>
-          <p className="mt-0.5 text-[13.5px] leading-relaxed text-[var(--text-primary)]">
+          <p className="mt-0.5 text-[13px] leading-relaxed text-[var(--text-secondary)]">
             {comment.body}
           </p>
           {comment.media?.kind === "image" && (
@@ -334,7 +362,7 @@ function CommentBubble({
             <img
               src={comment.media.src}
               alt={comment.media.alt}
-              className="mt-2 max-h-52 w-full rounded-xl object-cover"
+              className="mt-2 max-h-44 w-full rounded-xl object-cover ring-1 ring-[var(--glass-border-soft)]"
               data-comment-media="image"
             />
           )}
@@ -343,14 +371,14 @@ function CommentBubble({
               src={comment.media.src}
               poster={comment.media.poster}
               controls
-              className="mt-2 max-h-52 w-full rounded-xl bg-black"
+              className="mt-2 max-h-44 w-full rounded-xl bg-black ring-1 ring-[var(--glass-border-soft)]"
               data-comment-media="video"
             />
           )}
           <button
             type="button"
             onClick={onReply}
-            className="mt-1.5 text-[11.5px] font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+            className="mt-1 text-[11.5px] font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             data-comment-reply
           >
             Reply

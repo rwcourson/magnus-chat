@@ -41,7 +41,7 @@ export function writeString(key: string, value: string) {
 export const PERSIST_KEYS = {
   chats: "magnus-chats-v1",
   activeChat: "magnus-active-chat-v1",
-  /** Last Chat-mode surface — /messages, /?chat=id, /skills, etc. */
+  /** Last Chat-mode surface — /, /?chat=id, /skills, /routines, etc. */
   lastChatPath: "magnus-last-chat-path-v1",
   sidebarCollapsed: "magnus-sidebar-collapsed-v1",
   bookmarks: "magnus-feed-bookmarks-v1",

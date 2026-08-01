@@ -12,6 +12,7 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Archive,
+  Lock,
   MoreHorizontal,
   Pencil,
   Trash2,
@@ -31,7 +32,7 @@ type Variant = "sidebar" | "popout";
 export type ChatListEntry = Pick<
   ChatThread,
   "id" | "title" | "updatedAt" | "preview"
-> & { archived?: boolean };
+> & { archived?: boolean; private?: boolean };
 
 interface ChatListItemProps {
   chat: ChatListEntry;
@@ -58,8 +59,15 @@ export function ChatListItem({
   onSelect,
   className,
 }: ChatListItemProps) {
-  const { renameChat, archiveChat, unarchiveChat, deleteChat, restoreChat, chats } =
-    useChat();
+  const {
+    renameChat,
+    setChatPrivate,
+    archiveChat,
+    unarchiveChat,
+    deleteChat,
+    restoreChat,
+    chats,
+  } = useChat();
   const { toast } = useToast();
   const [menuOpen, setMenuOpen] = useState(false);
   const [renaming, setRenaming] = useState(false);
@@ -68,9 +76,23 @@ export function ChatListItem({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const pos = useMenuPosition(menuOpen, triggerRef, "right", 6, 168, 140);
+  // Height must cover Rename + Private + Archive + divider + Delete (~220).
+  // prefer "auto" so near-bottom rows open upward, near-top open downward.
+  const pos = useMenuPosition(
+    menuOpen,
+    triggerRef,
+    "right",
+    6,
+    168,
+    220,
+    "auto"
+  );
 
-  const initial = chat.title.slice(0, 1).toUpperCase();
+  /** Mask title until open (or while renaming with the real name). */
+  const masked = Boolean(chat.private) && !active && !renaming;
+  const displayTitle = masked ? "Private" : chat.title;
+  const displayPreview = masked ? "Hidden until opened" : chat.preview;
+  const initial = masked ? "·" : chat.title.slice(0, 1).toUpperCase();
 
   useEffect(() => {
     if (!renaming) setDraft(chat.title);
@@ -150,6 +172,8 @@ export function ChatListItem({
         className
       )}
       data-chat-row={chat.id}
+      data-chat-private={chat.private ? "true" : undefined}
+      data-chat-masked={masked ? "true" : undefined}
     >
       <span
         aria-hidden
@@ -182,7 +206,11 @@ export function ChatListItem({
             active && "bg-[var(--hover-fill-strong)] text-[var(--text-primary)]"
           )}
         >
-          {initial}
+          {masked ? (
+            <Lock className="h-3 w-3" strokeWidth={ICON_STROKE} aria-hidden />
+          ) : (
+            initial
+          )}
         </span>
 
         <span className="min-w-0 flex-1 pr-1">
@@ -206,8 +234,13 @@ export function ChatListItem({
             <>
               {isPopout ? (
                 <span className="flex items-baseline justify-between gap-2">
-                  <span className="side-label truncate text-[var(--text-primary)]">
-                    {chat.title}
+                  <span
+                    className={cn(
+                      "side-label truncate text-[var(--text-primary)]",
+                      masked && "italic text-[var(--text-muted)]"
+                    )}
+                  >
+                    {displayTitle}
                   </span>
                   {timeLabel && (
                     <span className="shrink-0 text-[10px] tabular-nums text-[var(--text-muted)]">
@@ -216,11 +249,18 @@ export function ChatListItem({
                   )}
                 </span>
               ) : (
-                <span className="side-label block truncate">{chat.title}</span>
+                <span
+                  className={cn(
+                    "side-label block truncate",
+                    masked && "italic text-[var(--text-muted)]"
+                  )}
+                >
+                  {displayTitle}
+                </span>
               )}
-              {chat.preview && !renaming && (
+              {displayPreview && !renaming && (
                 <span className="side-preview mt-0.5 block truncate">
-                  {chat.preview}
+                  {displayPreview}
                 </span>
               )}
             </>
@@ -270,13 +310,14 @@ export function ChatListItem({
                   top: pos.top ?? undefined,
                   bottom: pos.bottom ?? undefined,
                   left: pos.left,
-                  zIndex: 120,
+                  zIndex: 200,
                   width: 168,
                   maxHeight: pos.maxHeight,
                   transformOrigin: pos.transformOrigin,
                 }}
                 className={cn(
-                  "overflow-hidden rounded-xl border border-[var(--glass-border)]",
+                  /* Scroll only if viewport is truly tight — never clip actions */
+                  "overflow-y-auto overscroll-contain rounded-xl border border-[var(--glass-border)]",
                   "bg-[var(--glass-strong-solid)] py-1 shadow-[var(--shadow-menu)]",
                   "backdrop-blur-xl"
                 )}
@@ -286,6 +327,22 @@ export function ChatListItem({
                   icon={Pencil}
                   label="Rename"
                   onClick={run(() => setRenaming(true))}
+                />
+                <MenuItem
+                  icon={Lock}
+                  label={chat.private ? "Show title" : "Make private"}
+                  onClick={run(() => {
+                    const next = !chat.private;
+                    setChatPrivate(chat.id, next);
+                    toast({
+                      title: next ? "Marked private" : "Title visible",
+                      description: next
+                        ? "Title shows as Private until you open the chat."
+                        : "Title is visible in the list again.",
+                      tone: "success",
+                      duration: 2200,
+                    });
+                  })}
                 />
                 <MenuItem
                   icon={Archive}
