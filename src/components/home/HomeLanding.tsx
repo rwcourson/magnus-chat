@@ -1,17 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "framer-motion";
-import { ListChecks, Newspaper } from "lucide-react";
+import { LayoutGrid, LifeBuoy, ListChecks } from "lucide-react";
 import { NewsCarousel } from "@/components/home/NewsCarousel";
-import { ActionTiles } from "@/components/home/ActionTiles";
 import { RecentPostsStrip } from "@/components/chat/RecentPostsStrip";
 import { Composer } from "@/components/chat/Composer";
-import { PillAction } from "@/components/ui/PillAction";
 import { ScrollFade } from "@/components/ui/ScrollFade";
 import { useChat } from "@/context/ChatContext";
 import { useScout } from "@/context/ScoutContext";
-import { canAccessInsights } from "@/lib/auth-demo";
-import { currentUser } from "@/lib/mock-data";
 import { easeSpring } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { ICON_STROKE } from "@/lib/icons";
@@ -22,13 +19,11 @@ interface HomeLandingProps {
 }
 
 /**
- * Intranet home — news above the fold, actions, social pulse, Ask Magnus.
- * Channel direction: website feel + work-app efficiency, chat not dominant.
+ * Intranet home — company updates hero, room pulse, Ask Magnus.
  */
 export function HomeLanding({ onSend, disabled }: HomeLandingProps) {
-  const first = currentUser.name.split(" ")[0] ?? currentUser.name;
   const { catchMeUp, isTyping, stopGeneration } = useChat();
-  const { publishedStories, pendingCount } = useScout();
+  const { publishedStories } = useScout();
 
   return (
     <div className="relative flex h-full w-full min-h-0 flex-col">
@@ -42,7 +37,7 @@ export function HomeLanding({ onSend, disabled }: HomeLandingProps) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease: easeSpring }}
-            className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"
+            className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"
             data-tour-home
           >
             <div className="min-w-0">
@@ -50,10 +45,11 @@ export function HomeLanding({ onSend, disabled }: HomeLandingProps) {
                 Good to see you
               </p>
               <h1 className="mt-0.5 text-[1.65rem] font-semibold tracking-[-0.03em] text-[var(--text-primary)] sm:text-[1.85rem]">
-                {first}&apos;s home
+                Your home
               </h1>
               <p className="mt-1.5 max-w-lg text-[14px] leading-relaxed text-[var(--text-secondary)]">
-                News, actions, and team updates — ask Magnus anytime below.
+                Official news up top, Live conversation below, Magnus when you
+                need help — start here.
               </p>
             </div>
             <div className="flex shrink-0 flex-wrap items-center gap-2">
@@ -63,7 +59,6 @@ export function HomeLanding({ onSend, disabled }: HomeLandingProps) {
                 onClick={() => catchMeUp()}
                 data-catch-me-up
                 className={cn(
-                  /* Same surface as Ask Magnus FAB (btn-primary, not white solid) */
                   "btn-primary inline-flex items-center gap-1.5 rounded-full px-3.5 py-2",
                   "text-[12.5px] font-semibold",
                   "transition-transform duration-150 active:scale-[0.98]",
@@ -74,21 +69,10 @@ export function HomeLanding({ onSend, disabled }: HomeLandingProps) {
                 <ListChecks className="h-3.5 w-3.5" strokeWidth={ICON_STROKE} />
                 Catch me up
               </button>
-              {canAccessInsights() && pendingCount > 0 && (
-                <span data-insights-teaser>
-                  <PillAction
-                    href="/insights"
-                    icon={Newspaper}
-                    arrow={false}
-                    className="h-9 px-3.5 text-[12px]"
-                  >
-                    {pendingCount} for Insights
-                  </PillAction>
-                </span>
-              )}
             </div>
           </motion.header>
 
+          {/* Top hero: recent company news / updates tool */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -97,18 +81,45 @@ export function HomeLanding({ onSend, disabled }: HomeLandingProps) {
             <NewsCarousel stories={publishedStories} />
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.4, ease: easeSpring }}
-            className="mt-6"
-          >
-            <ActionTiles />
-          </motion.div>
-
           <div className="mt-8">
             <RecentPostsStrip />
           </div>
+
+          {/* Thin entry points — apps vs external resources (not a dashboard) */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.12, duration: 0.35, ease: easeSpring }}
+            className="mt-6 flex flex-wrap gap-2"
+            data-home-apps-resources
+          >
+            <Link
+              href="/apps"
+              className={cn(
+                "inline-flex h-9 items-center gap-1.5 rounded-full px-3.5 text-[12.5px] font-semibold",
+                "border border-[var(--glass-border-soft)] bg-[var(--glass-strong-solid)]",
+                "text-[var(--text-secondary)] shadow-[var(--shadow-xs)]",
+                "hover:border-[var(--glass-border)] hover:text-[var(--text-primary)]"
+              )}
+              data-home-apps-link
+            >
+              <LayoutGrid className="h-3.5 w-3.5" strokeWidth={ICON_STROKE} />
+              Magnus apps
+            </Link>
+            <Link
+              href="/resources"
+              className={cn(
+                "inline-flex h-9 items-center gap-1.5 rounded-full px-3.5 text-[12.5px] font-semibold",
+                "border border-[var(--glass-border-soft)] bg-[var(--glass-strong-solid)]",
+                "text-[var(--text-secondary)] shadow-[var(--shadow-xs)]",
+                "hover:border-[var(--glass-border)] hover:text-[var(--text-primary)]"
+              )}
+              data-home-resources-link
+            >
+              <LifeBuoy className="h-3.5 w-3.5" strokeWidth={ICON_STROKE} />
+              Employee resources
+            </Link>
+          </motion.div>
 
           {/* Sticky-feel ask bar at end of content / always reachable */}
           <motion.div

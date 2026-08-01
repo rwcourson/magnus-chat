@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Heart, MessageCircle } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import type { FeedPost } from "@/types/feed";
 import { feedPosts } from "@/lib/feed-data";
 import { selectRecentPosts } from "@/lib/welcome";
@@ -43,11 +43,11 @@ export function RecentPostsStrip({
     <div className="mb-2 flex w-full min-w-0 items-center justify-between gap-2">
       <div className="min-w-0">
         <p className="text-[12.5px] font-semibold tracking-tight text-[var(--text-muted)]">
-          Recent posts
+          B&amp;G Live conversation
         </p>
         {!compact && (
           <p className="mt-0.5 text-[12px] text-[var(--text-secondary)]">
-            From the B&amp;G company feed
+            People posts and auto-sourced company notes — not the news carousel
           </p>
         )}
       </div>
@@ -62,7 +62,7 @@ export function RecentPostsStrip({
           </PillAction>
         )}
         <PillAction href="/feed" size={compact ? "sm" : "md"}>
-          Open feed
+          Open B&amp;G Live
         </PillAction>
       </div>
     </div>
@@ -163,7 +163,6 @@ function StripCard({
 }) {
   const time = formatFeedTime(post.createdAt, nowMs);
   const title = post.headline ?? post.body;
-  const likes = post.reactions.find((r) => r.type === "like")?.count ?? 0;
   const hasImage = post.media?.kind === "image";
   const origin =
     edge === "start"
@@ -330,24 +329,15 @@ function StripCard({
             )}
             <span
               className={cn(
-                "inline-flex items-center tabular-nums text-[var(--text-muted)]",
-                compact ? "gap-1.5 text-[10px]" : "gap-2 text-[10.5px]"
+                "inline-flex items-center gap-0.5 tabular-nums text-[var(--text-muted)]",
+                compact ? "text-[10px]" : "text-[10.5px]"
               )}
             >
-              <span className="inline-flex items-center gap-0.5">
-                <Heart
-                  className={compact ? "h-2.5 w-2.5" : "h-3 w-3"}
-                  strokeWidth={ICON_STROKE}
-                />
-                {likes}
-              </span>
-              <span className="inline-flex items-center gap-0.5">
-                <MessageCircle
-                  className={compact ? "h-2.5 w-2.5" : "h-3 w-3"}
-                  strokeWidth={ICON_STROKE}
-                />
-                {post.comments}
-              </span>
+              <MessageCircle
+                className={compact ? "h-2.5 w-2.5" : "h-3 w-3"}
+                strokeWidth={ICON_STROKE}
+              />
+              {post.comments > 0 ? post.comments : "Reply"}
             </span>
           </div>
         </div>

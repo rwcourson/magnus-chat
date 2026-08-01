@@ -54,6 +54,9 @@ export type FeedCategory =
   | "people"
   | "insight";
 
+/** How a Live post entered the feed — organic vs auto-sourced company content. */
+export type FeedSourceKind = "organic" | "news" | "marketing" | "system";
+
 export type FeedPost = {
   id: string;
   author: FeedAuthor;
@@ -71,6 +74,13 @@ export type FeedPost = {
   commentList?: FeedComment[];
   /** Category for filter chips */
   category: FeedCategory;
+  /**
+   * Origin of the post. Omitted / organic = people posting.
+   * news | marketing | system = auto-sourced company content (demo pipeline).
+   */
+  sourceKind?: FeedSourceKind;
+  /** Short badge label, e.g. “Official news”, “Marketing” */
+  sourceLabel?: string;
 };
 
 /** Composer field bag for creating a new timeline post. */

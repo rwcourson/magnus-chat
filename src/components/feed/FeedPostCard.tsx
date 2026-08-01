@@ -2,14 +2,14 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Bookmark,
-  Heart,
+  BadgeCheck,
+  Check,
+  ExternalLink,
+  Hand,
   Lightbulb,
   MessageCircle,
-  BadgeCheck,
-  ExternalLink,
 } from "lucide-react";
 import type { FeedComment, FeedPost, FeedReaction } from "@/types/feed";
 import {
@@ -19,6 +19,7 @@ import {
 } from "@/lib/feed";
 import { peopleDirectory } from "@/lib/people-data";
 import { linkPreviewImage } from "@/lib/og";
+import { CommentThread } from "@/components/feed/CommentThread";
 import { cn } from "@/lib/utils";
 import { easeSpring } from "@/lib/motion";
 import { ICON_STROKE } from "@/lib/icons";
@@ -27,39 +28,29 @@ interface FeedPostCardProps {
   post: FeedPost;
   index?: number;
   nowMs?: number;
-  bookmarked?: boolean;
-  onBookmarkChange?: (postId: string, bookmarked: boolean) => void;
-  /** Open split detail / comments (post body or comment control). */
+  /** Open / close inline reply thread */
   onOpenDetail?: (postId: string) => void;
-  /** Highlight when this post is focused in the split view */
   isFocused?: boolean;
-  /** Controlled comment list (shared with side panel) */
   comments?: FeedComment[];
   onCommentsChange?: (comments: FeedComment[]) => void;
 }
 
-function reactionIcon(type: FeedReaction["type"]) {
-  if (type === "like") return Heart;
-  if (type === "insight") return Lightbulb;
-  return Bookmark;
-}
+/** Soft text reactions — no vanity counts by default */
+const REACT_META: Record<
+  Exclude<FeedReaction["type"], "bookmark">,
+  { label: string; icon: typeof Hand }
+> = {
+  like: { label: "Thanks", icon: Hand },
+  insight: { label: "Helpful", icon: Lightbulb },
+};
 
-function withBookmarkActive(
-  reactions: FeedReaction[],
-  bookmarked?: boolean
-): FeedReaction[] {
-  if (bookmarked === undefined) return reactions;
-  return reactions.map((r) =>
-    r.type === "bookmark" ? { ...r, active: bookmarked } : r
-  );
-}
-
+/**
+ * Chat-native B&G Live row — message density, not social card.
+ */
 export function FeedPostCard({
   post,
   index = 0,
   nowMs,
-  bookmarked,
-  onBookmarkChange,
   onOpenDetail,
   isFocused,
   comments: controlledComments,
@@ -72,11 +63,10 @@ export function FeedPostCard({
   const setComments = onCommentsChange ?? setLocalComments;
 
   const [reactions, setReactions] = useState(() =>
-    withBookmarkActive(post.reactions, bookmarked)
+    post.reactions.filter((r) => r.type !== "bookmark")
   );
   const [imgFailed, setImgFailed] = useState(false);
 
-  const displayReactions = withBookmarkActive(reactions, bookmarked);
   const commentTotal = commentCountFromList(
     post.comments,
     seedComments.length,
@@ -84,14 +74,11 @@ export function FeedPostCard({
   );
 
   const toggle = (type: FeedReaction["type"]) => {
+    if (type === "bookmark") return;
     setReactions((prev) =>
       prev.map((r) => {
         if (r.type !== type) return r;
-        const wasActive =
-          bookmarked !== undefined && type === "bookmark"
-            ? bookmarked
-            : !!r.active;
-        const active = !wasActive;
+        const active = !r.active;
         return {
           ...r,
           active,
@@ -99,304 +86,298 @@ export function FeedPostCard({
         };
       })
     );
-
-    if (type === "bookmark") {
-      const wasActive =
-        bookmarked !== undefined
-          ? bookmarked
-          : !!displayReactions.find((r) => r.type === "bookmark")?.active;
-      onBookmarkChange?.(post.id, !wasActive);
-    }
   };
 
   const handleOpen = () => onOpenDetail?.(post.id);
   const time = formatFeedTime(post.createdAt, nowMs);
+  const place = post.author.office;
+  const timeLine = place ? `${time} · ${place}` : time;
+
+  const profile = peopleDirectory.find(
+    (p) => p.handle === post.author.handle || p.name === post.author.name
+  );
+
+  const avatar = (
+    <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-lg ring-1 ring-[var(--glass-border-soft)]">
+      {post.author.avatarUrl && !imgFailed ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={post.author.avatarUrl}
+          alt=""
+          className="h-full w-full object-cover"
+          onError={() => setImgFailed(true)}
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center bg-[var(--hover-fill-strong)] text-[11px] font-semibold text-[var(--text-secondary)]">
+          {post.author.initials}
+        </div>
+      )}
+    </div>
+  );
+
+  const hasMedia = Boolean(post.media);
 
   return (
     <motion.article
-      initial={isFocused || index > 3 ? false : { opacity: 0, y: 8 }}
+      initial={isFocused || index > 5 ? false : { opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{
-        delay: isFocused || index > 3 ? 0 : Math.min(index * 0.03, 0.12),
-        duration: 0.22,
+        delay: isFocused || index > 5 ? 0 : Math.min(index * 0.02, 0.1),
+        duration: 0.2,
         ease: easeSpring,
       }}
-      onClick={handleOpen}
       className={cn(
-        "group relative cursor-pointer rounded-[20px]",
-        "border border-[var(--glass-border-soft)]",
-        "bg-[var(--glass-strong-solid)]",
-        "shadow-[var(--shadow-sm)]",
-        "transition-[border-color,box-shadow] duration-200",
-        "hover:border-[var(--glass-border)] hover:shadow-[var(--shadow-md)]",
-        /* No focus/selection ring — comments panel already signals open state */
-        "outline-none"
+        "group relative",
+        "border-b border-[var(--glass-border-soft)]",
+        "px-1 py-3.5 sm:px-1.5 sm:py-4",
+        isFocused && "bg-[var(--hover-fill)]/40"
       )}
       data-feed-post={post.id}
       data-feed-focused={isFocused ? "true" : undefined}
       aria-expanded={isFocused ? true : false}
     >
-      <div className="relative overflow-hidden rounded-[20px]">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-[var(--hover-fill)] to-transparent opacity-70"
-        />
+      <div className="flex gap-2.5 sm:gap-3">
+        {profile ? (
+          <Link
+            href={`/people/${profile.id}`}
+            className="shrink-0"
+            aria-label={`Open ${post.author.name} profile`}
+          >
+            {avatar}
+          </Link>
+        ) : (
+          avatar
+        )}
 
-        <div className="relative px-4 pb-3.5 pt-4 sm:px-5">
-          <div className="flex items-start gap-3">
-            {(() => {
-              const profile = peopleDirectory.find(
-                (p) =>
-                  p.handle === post.author.handle ||
-                  p.name === post.author.name
-              );
-              const avatar = (
-                <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg ring-1 ring-[var(--glass-border)] shadow-[var(--shadow-xs)]">
-                  {post.author.avatarUrl && !imgFailed ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={post.author.avatarUrl}
-                      alt=""
-                      className="h-full w-full object-cover"
-                      onError={() => setImgFailed(true)}
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#4a5568] to-[#1e2530] text-[12px] font-semibold tracking-wide text-white">
-                      {post.author.initials}
-                    </div>
-                  )}
-                </div>
-              );
-              return profile ? (
-                <Link
-                  href={`/people/${profile.id}`}
-                  onClick={(e) => e.stopPropagation()}
-                  className="shrink-0"
-                  aria-label={`Open ${post.author.name} profile`}
-                >
-                  {avatar}
-                </Link>
-              ) : (
-                avatar
-              );
-            })()}
-
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
-                {(() => {
-                  const profile = peopleDirectory.find(
-                    (p) =>
-                      p.handle === post.author.handle ||
-                      p.name === post.author.name
-                  );
-                  const nameClass =
-                    "truncate text-[14px] font-semibold tracking-[-0.015em] text-[var(--text-primary)]";
-                  return profile ? (
-                    <Link
-                      href={`/people/${profile.id}`}
-                      onClick={(e) => e.stopPropagation()}
-                      className={cn(nameClass, "hover:underline")}
-                    >
-                      {post.author.name}
-                    </Link>
-                  ) : (
-                    <span className={nameClass}>{post.author.name}</span>
-                  );
-                })()}
-                {post.author.verified && (
-                  <BadgeCheck
-                    className="h-3.5 w-3.5 shrink-0 text-[var(--accent-bright)]"
-                    strokeWidth={ICON_STROKE}
-                    aria-label="Verified"
-                  />
-                )}
-                <span className="truncate text-[12.5px] text-[var(--text-muted)]">
-                  @{post.author.handle}
-                </span>
-                <span className="text-[var(--text-muted)]">·</span>
-                <time
-                  dateTime={post.createdAt}
-                  className="shrink-0 text-[12.5px] tabular-nums text-[var(--text-muted)]"
-                >
-                  {time}
-                </time>
-              </div>
-              {(post.author.role || post.author.office) && (
-                <p className="mt-0.5 truncate text-[12px] text-[var(--text-secondary)]">
-                  {[post.author.role, post.author.office]
-                    .filter(Boolean)
-                    .join(" · ")}
-                </p>
-              )}
-            </div>
+        <div className="min-w-0 flex-1">
+          {/* Author · time (conversation chrome) */}
+          <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0">
+            {profile ? (
+              <Link
+                href={`/people/${profile.id}`}
+                className="truncate text-[13.5px] font-semibold tracking-[-0.015em] text-[var(--text-primary)] hover:underline"
+              >
+                {post.author.name}
+              </Link>
+            ) : (
+              <span className="truncate text-[13.5px] font-semibold tracking-[-0.015em] text-[var(--text-primary)]">
+                {post.author.name}
+              </span>
+            )}
+            {post.author.verified && (
+              <BadgeCheck
+                className="h-3.5 w-3.5 shrink-0 text-[var(--text-muted)]"
+                strokeWidth={ICON_STROKE}
+                aria-label="Verified"
+              />
+            )}
+            {post.author.role && (
+              <span className="truncate text-[12px] text-[var(--text-muted)]">
+                {post.author.role}
+              </span>
+            )}
+            {post.sourceKind && post.sourceKind !== "organic" && (
+              <span
+                className="rounded-full bg-[var(--hover-fill-strong)] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--text-muted)]"
+                data-feed-source={post.sourceKind}
+              >
+                {post.sourceLabel ?? post.sourceKind}
+              </span>
+            )}
+            <span className="text-[12px] text-[var(--text-muted)]">·</span>
+            <time
+              dateTime={post.createdAt}
+              className="shrink-0 text-[12px] tabular-nums text-[var(--text-muted)]"
+            >
+              {timeLine}
+            </time>
           </div>
 
-          <div className="mt-3 space-y-2">
+          {/* Message body */}
+          <div className="mt-1 space-y-1">
             {post.headline && (
-              <h3 className="text-[15px] font-semibold tracking-[-0.02em] text-[var(--text-primary)]">
+              <p className="text-[13.5px] font-medium tracking-[-0.01em] text-[var(--text-primary)]">
                 {post.headline}
-              </h3>
+              </p>
             )}
-            <p className="whitespace-pre-wrap text-[14.5px] leading-relaxed text-[var(--text-secondary)]">
+            <p className="whitespace-pre-wrap text-[13.5px] leading-relaxed text-[var(--text-secondary)]">
               {post.body}
             </p>
           </div>
 
+          {/* Soft topic chips — not social hashtags */}
           {post.tags && post.tags.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {post.tags.map((tag) => (
+            <div className="mt-1.5 flex flex-wrap gap-1">
+              {post.tags.slice(0, 3).map((tag) => (
                 <span
                   key={tag}
-                  className="rounded-full border border-[var(--glass-border-soft)] bg-[var(--hover-fill)] px-2 py-0.5 text-[11px] font-medium text-[var(--text-muted)]"
+                  className="text-[11px] font-medium text-[var(--text-muted)]"
                 >
-                  {tag}
+                  {tag.startsWith("#") ? tag : `#${tag}`}
                 </span>
               ))}
             </div>
           )}
 
-          {post.media?.kind === "image" && (
-            <div className="mt-3 overflow-hidden rounded-2xl border border-[var(--glass-border-soft)]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={post.media.src}
-                alt={post.media.alt}
-                className="aspect-[16/9] w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-              />
-            </div>
-          )}
-
-          {post.media?.kind === "video" && (
-            <div
-              className="mt-3 overflow-hidden rounded-2xl border border-[var(--glass-border-soft)]"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <video
-                src={post.media.src}
-                poster={post.media.poster}
-                controls
-                className="aspect-[16/9] w-full bg-black object-cover"
-              />
-            </div>
-          )}
-
-          {post.media?.kind === "link" && (
-            <a
-              href={post.media.url}
-              onClick={(e) => e.stopPropagation()}
-              className={cn(
-                "mt-3 block overflow-hidden rounded-2xl border border-[var(--glass-border-soft)]",
-                "bg-[var(--hover-fill)] transition-colors hover:bg-[var(--hover-fill-strong)]"
-              )}
-              data-link-preview
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={linkPreviewImage(post.media.imageUrl)}
-                alt=""
-                className="aspect-[1.91/1] w-full object-cover object-center"
-              />
-              <div className="flex items-center gap-3 px-3.5 py-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--hover-fill-strong)] text-[var(--text-secondary)]">
-                  <ExternalLink
-                    className="h-4 w-4"
-                    strokeWidth={ICON_STROKE}
+          {/* Media always visible (chat-native attachment, not collapsed) */}
+          {hasMedia && post.media && (
+            <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+              {post.media.kind === "image" && (
+                <div className="overflow-hidden rounded-xl border border-[var(--glass-border-soft)]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={post.media.src}
+                    alt={post.media.alt}
+                    className="max-h-56 w-full object-cover"
+                    loading="lazy"
                   />
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[13px] font-semibold text-[var(--text-primary)]">
-                    {post.media.title}
-                  </p>
-                  <p className="truncate text-[11.5px] text-[var(--text-muted)]">
-                    {post.media.domain}
-                  </p>
+              )}
+              {post.media.kind === "video" && (
+                <div className="overflow-hidden rounded-xl border border-[var(--glass-border-soft)]">
+                  <video
+                    src={post.media.src}
+                    poster={post.media.poster}
+                    controls
+                    className="max-h-56 w-full bg-black object-cover"
+                  />
                 </div>
-              </div>
-            </a>
+              )}
+              {post.media.kind === "link" && (
+                <a
+                  href={post.media.url}
+                  className={cn(
+                    "flex items-center gap-2.5 overflow-hidden rounded-xl border border-[var(--glass-border-soft)]",
+                    "bg-[var(--hover-fill)] px-3 py-2 transition-colors hover:bg-[var(--hover-fill-strong)]"
+                  )}
+                  data-link-preview
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={linkPreviewImage(post.media.imageUrl)}
+                    alt=""
+                    className="h-10 w-14 shrink-0 rounded-md object-cover"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[12.5px] font-medium text-[var(--text-primary)]">
+                      {post.media.title}
+                    </p>
+                    <p className="truncate text-[11px] text-[var(--text-muted)]">
+                      {post.media.domain}
+                    </p>
+                  </div>
+                  <ExternalLink
+                    className="h-3.5 w-3.5 shrink-0 text-[var(--text-muted)]"
+                    strokeWidth={ICON_STROKE}
+                  />
+                </a>
+              )}
+            </div>
           )}
 
-          <div className="mt-3.5 flex items-center justify-between gap-2 border-t border-[var(--glass-border-soft)] pt-3">
-            <div
-              className="flex flex-wrap items-center gap-0.5"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {displayReactions.map((r) => {
-                const Icon = reactionIcon(r.type);
-                return (
-                  <button
-                    key={r.type}
-                    type="button"
-                    onClick={() => toggle(r.type)}
-                    className={cn(
-                      "inline-flex h-8 items-center gap-1.5 rounded-full px-2.5",
-                      "text-[12px] font-medium tabular-nums",
-                      "transition-colors duration-150",
-                      /* Neutral pill — only the icon takes reaction color */
-                      "text-[var(--text-muted)] hover:bg-[var(--hover-fill)] hover:text-[var(--text-secondary)]"
-                    )}
-                    aria-pressed={!!r.active}
-                    aria-label={`${r.type} ${r.count}`}
-                  >
-                    <Icon
-                      className={cn(
-                        "h-3.5 w-3.5 transition-colors duration-150",
-                        r.active &&
-                          r.type === "like" &&
-                          "fill-current text-rose-400",
-                        r.active &&
-                          r.type === "insight" &&
-                          "fill-current text-amber-400",
-                        r.active &&
-                          r.type === "bookmark" &&
-                          "fill-current text-amber-500",
-                        r.active &&
-                          r.type !== "like" &&
-                          r.type !== "insight" &&
-                          r.type !== "bookmark" &&
-                          "text-[var(--text-primary)]"
-                      )}
-                      strokeWidth={ICON_STROKE}
-                    />
-                    <span
-                      className={cn(
-                        r.active && "text-[var(--text-secondary)]"
-                      )}
-                    >
-                      {r.count}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-            <div
-              className="flex items-center gap-0.5 text-[var(--text-muted)]"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                type="button"
-                onClick={handleOpen}
-                aria-expanded={!!isFocused}
-                aria-label={`Comments ${commentTotal}`}
-                className={cn(
-                  "inline-flex h-8 items-center gap-1 rounded-full px-2 text-[12px] font-medium",
-                  "transition-colors duration-150",
-                  isFocused
-                    ? "text-[var(--select-text)]"
-                    : "hover:bg-[var(--hover-fill)] hover:text-[var(--text-secondary)]"
-                )}
-                data-open-comments
-              >
-                <MessageCircle
+          {/* Actions: soft reacts + reply */}
+          <div
+            className="mt-2 flex flex-wrap items-center gap-0.5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {reactions.map((r) => {
+              if (r.type === "bookmark") return null;
+              const meta = REACT_META[r.type];
+              if (!meta) return null;
+              const Icon = r.active ? Check : meta.icon;
+              return (
+                <button
+                  key={r.type}
+                  type="button"
+                  onClick={() => toggle(r.type)}
                   className={cn(
-                    "h-3.5 w-3.5 transition-colors duration-150",
-                    isFocused && "text-[var(--select-text)]"
+                    "inline-flex h-7 items-center gap-1 rounded-full px-2",
+                    "text-[11.5px] font-medium transition-colors duration-150",
+                    r.active
+                      ? "bg-[var(--select-fill)] text-[var(--select-text)]"
+                      : "text-[var(--text-muted)] hover:bg-[var(--hover-fill)] hover:text-[var(--text-secondary)]"
                   )}
-                  strokeWidth={ICON_STROKE}
-                />
-                {commentTotal}
-              </button>
-            </div>
+                  aria-pressed={!!r.active}
+                  aria-label={meta.label}
+                  title={
+                    r.active
+                      ? meta.label
+                      : r.count > 0
+                        ? `${meta.label} · several people`
+                        : meta.label
+                  }
+                >
+                  <Icon className="h-3 w-3" strokeWidth={ICON_STROKE} />
+                  <span>{meta.label}</span>
+                  {/* Count only after you react (no vanity scoreboard) */}
+                  {r.active && r.count > 0 && (
+                    <span className="tabular-nums opacity-70">{r.count}</span>
+                  )}
+                </button>
+              );
+            })}
+
+            <button
+              type="button"
+              onClick={handleOpen}
+              aria-expanded={!!isFocused}
+              aria-label={
+                commentTotal > 0
+                  ? `Replies ${commentTotal}`
+                  : "Reply"
+              }
+              className={cn(
+                "inline-flex h-7 items-center gap-1 rounded-full px-2",
+                "text-[11.5px] font-medium transition-colors duration-150",
+                isFocused
+                  ? "bg-[var(--select-fill)] text-[var(--select-text)]"
+                  : "text-[var(--text-muted)] hover:bg-[var(--hover-fill)] hover:text-[var(--text-secondary)]"
+              )}
+              data-open-comments
+            >
+              <MessageCircle className="h-3 w-3" strokeWidth={ICON_STROKE} />
+              {commentTotal > 0 ? (
+                <span className="tabular-nums">{commentTotal}</span>
+              ) : (
+                <span>Reply</span>
+              )}
+            </button>
           </div>
+
+          {/* Inline thread — not a magazine side panel */}
+          <AnimatePresence initial={false}>
+            {isFocused && (
+              <motion.div
+                key="inline-thread"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.22, ease: easeSpring }}
+                className="overflow-hidden"
+                data-feed-inline-thread
+              >
+                <div
+                  className={cn(
+                    "mt-3 rounded-2xl border border-[var(--glass-border-soft)]",
+                    "bg-[var(--glass-fill)]/80 px-3 pb-3 pt-2 backdrop-blur-sm"
+                  )}
+                  onClick={(e) => e.stopPropagation()}
+                  data-feed-detail-panel
+                >
+                  <p className="mb-1 px-0.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--text-muted)]">
+                    Thread
+                  </p>
+                  <CommentThread
+                    postId={post.id}
+                    comments={comments}
+                    onChange={setComments}
+                    nowMs={nowMs}
+                    autoFocus
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </motion.article>

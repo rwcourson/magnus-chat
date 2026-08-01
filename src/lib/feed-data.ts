@@ -1,10 +1,12 @@
 import type { FeedPost } from "@/types/feed";
+import { sortFeedNewest } from "@/lib/feed";
+import { buildAutoSourcedFeedPosts } from "@/lib/feed-auto-source";
 
 /**
- * B&G-flavored demo timeline — presentation only.
+ * Organic people posts (demo). Auto-sourced company items are merged below.
  * Timestamps relative to a fixed “now” of 2026-07-23T19:00:00Z for stable demos.
  */
-export const feedPosts: FeedPost[] = [
+const organicFeedPosts: FeedPost[] = [
   {
     id: "fp-1",
     category: "company",
@@ -19,7 +21,6 @@ export const feedPosts: FeedPost[] = [
       avatarUrl:
         "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=128&h=128&fit=crop",
     },
-    headline: "Q3 safety milestone",
     body: "Proud of our field teams — TRIR improved another 12% quarter-over-quarter. Every observation logged in Magnus feeds the same playbook. Keep looking out for each other.",
     tags: ["Safety", "Field"],
     reactions: [
@@ -327,8 +328,70 @@ export const feedPosts: FeedPost[] = [
       { type: "insight", count: 28 },
       { type: "bookmark", count: 31 },
     ],
-    comments: 9,
+    comments: 4,
     shares: 14,
+    commentList: [
+      {
+        id: "fc-5a",
+        postId: "fp-5",
+        author: {
+          name: "Maya Chen",
+          handle: "mchen",
+          role: "Senior PM",
+          office: "Atlanta",
+          initials: "MC",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Send the draft risk email — I’ll forward to the tower leadership huddle.",
+        createdAt: "2026-07-22T16:25:00Z",
+      },
+      {
+        id: "fc-5b",
+        postId: "fp-5",
+        author: {
+          name: "Priya Nair",
+          handle: "pnair",
+          role: "Estimating Lead",
+          office: "Charlotte",
+          initials: "PN",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Switchgear lead times match what we’re seeing on CLT packages. Good catch.",
+        createdAt: "2026-07-22T16:48:00Z",
+      },
+      {
+        id: "fc-5b-r1",
+        postId: "fp-5",
+        parentId: "fc-5b",
+        author: {
+          name: "Magnus",
+          handle: "magnus",
+          role: "AI Assistant",
+          office: "B&G",
+          initials: "M",
+          verified: true,
+        },
+        body: "Noted — I’ll flag CLT in next week’s digest if RFIs stack again.",
+        createdAt: "2026-07-22T17:05:00Z",
+      },
+      {
+        id: "fc-5c",
+        postId: "fp-5",
+        author: {
+          name: "James Courson",
+          handle: "jcourson",
+          role: "Innovation Manager",
+          office: "Birmingham",
+          initials: "JC",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Anyone need this as a Friday look-ahead slide? I can spin one in Magnus.",
+        createdAt: "2026-07-22T17:40:00Z",
+      },
+    ],
   },
   {
     id: "fp-6",
@@ -355,8 +418,86 @@ export const feedPosts: FeedPost[] = [
       { type: "insight", count: 6 },
       { type: "bookmark", count: 8 },
     ],
-    comments: 19,
+    comments: 5,
     shares: 4,
+    commentList: [
+      {
+        id: "fc-6a",
+        postId: "fp-6",
+        author: {
+          name: "Tom Hale",
+          handle: "thale",
+          role: "Superintendent",
+          office: "Birmingham",
+          initials: "TH",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Huge — night shift earned it. QA pack look clean from here.",
+        createdAt: "2026-07-21T19:45:00Z",
+      },
+      {
+        id: "fc-6b",
+        postId: "fp-6",
+        author: {
+          name: "Chris Delgado",
+          handle: "cdelgado",
+          role: "Field Engineer",
+          office: "Nashville",
+          initials: "CD",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Cylinder breaks scheduled for Thu. I’ll post numbers here.",
+        createdAt: "2026-07-21T20:05:00Z",
+      },
+      {
+        id: "fc-6b-r1",
+        postId: "fp-6",
+        parentId: "fc-6b",
+        author: {
+          name: "Derek Walsh",
+          handle: "dwalsh",
+          role: "Superintendent",
+          office: "Nashville",
+          initials: "DW",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Perfect — loop Maya if anything’s under strength.",
+        createdAt: "2026-07-21T20:18:00Z",
+      },
+      {
+        id: "fc-6c",
+        postId: "fp-6",
+        author: {
+          name: "Maya Chen",
+          handle: "mchen",
+          role: "Senior PM",
+          office: "Atlanta",
+          initials: "MC",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Thanks Derek — told owner’s rep we’ll hold the Tuesday window call until radar clears.",
+        createdAt: "2026-07-21T20:40:00Z",
+      },
+      {
+        id: "fc-6d",
+        postId: "fp-6",
+        author: {
+          name: "Robert Courson",
+          handle: "rcourson",
+          role: "Platform",
+          office: "Birmingham",
+          initials: "RC",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Photos look sharp — can we use one for the Friday field recap?",
+        createdAt: "2026-07-21T21:10:00Z",
+      },
+    ],
   },
   {
     id: "fp-7",
@@ -370,16 +511,78 @@ export const feedPosts: FeedPost[] = [
       initials: "PC",
       verified: true,
     },
-    headline: "Magnus onboarding cohort",
-    body: "New hires this month get a Day-1 Magnus walkthrough. Mentors: claim a buddy slot before Friday so we can pair project-side champions.",
+    body: "New hires this month get a Day-1 Magnus walkthrough. Mentors — claim a buddy slot before Friday so we can pair project-side champions.",
     tags: ["People", "Onboarding"],
     reactions: [
       { type: "like", count: 67 },
       { type: "insight", count: 11 },
       { type: "bookmark", count: 15 },
     ],
-    comments: 8,
+    comments: 4,
     shares: 5,
+    commentList: [
+      {
+        id: "fc-7a",
+        postId: "fp-7",
+        author: {
+          name: "Evan Brooks",
+          handle: "ebrooks",
+          role: "IT Support",
+          office: "Birmingham",
+          initials: "EB",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1463453091185-61582044d556?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "I’ll cover VPN + licenses before the walkthrough. Drop names in the form.",
+        createdAt: "2026-07-21T14:30:00Z",
+      },
+      {
+        id: "fc-7b",
+        postId: "fp-7",
+        author: {
+          name: "Lena Ortiz",
+          handle: "lortiz",
+          role: "Project Engineer",
+          office: "Atlanta",
+          initials: "LO",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=256&h=256&fit=crop&crop=faces",
+        },
+        body: "Claimed two ATL buddies. Can we do a 20-min field-side Magnus demo after?",
+        createdAt: "2026-07-21T15:05:00Z",
+      },
+      {
+        id: "fc-7b-r1",
+        postId: "fp-7",
+        parentId: "fc-7b",
+        author: {
+          name: "James Courson",
+          handle: "jcourson",
+          role: "Innovation Manager",
+          office: "Birmingham",
+          initials: "JC",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Yes — book me for Thursday. Bring a real RFI if you have one.",
+        createdAt: "2026-07-21T15:22:00Z",
+      },
+      {
+        id: "fc-7c",
+        postId: "fp-7",
+        author: {
+          name: "Sofia Kim",
+          handle: "skim",
+          role: "VDC Manager",
+          office: "Atlanta",
+          initials: "SK",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=128&h=128&fit=crop&crop=faces",
+        },
+        body: "Taking one VDC intern — slot claimed in the form.",
+        createdAt: "2026-07-21T16:00:00Z",
+      },
+    ],
   },
   {
     id: "fp-8",
@@ -1002,6 +1205,12 @@ export const feedPosts: FeedPost[] = [
     ],
   },
 ];
+
+/** Full B&G Live timeline: organic + auto-sourced company content. */
+export const feedPosts: FeedPost[] = sortFeedNewest([
+  ...organicFeedPosts,
+  ...buildAutoSourcedFeedPosts(),
+]);
 
 export const feedCategories = [
   { id: "all" as const, label: "All" },

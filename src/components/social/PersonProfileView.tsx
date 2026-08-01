@@ -23,23 +23,17 @@ import { ICON_STROKE } from "@/lib/icons";
 
 export function PersonProfileView({ person }: { person: PersonProfile }) {
   const router = useRouter();
-  const { sendMessage, setAppMode } = useChat();
+  const { sendMessage, setAppMode, openPersonChat } = useChat();
 
   const posts = feedPosts.filter(
     (p) =>
       p.author.handle === person.handle || p.author.name === person.name
   );
 
+  /** Primary Message — private chat thread, not a Magnus draft prompt. */
   const message = () => {
-    setAppMode("chat");
-    router.push("/");
-    window.setTimeout(
-      () =>
-        sendMessage(
-          `Draft a quick Teams note to ${person.name} (${person.role ?? "colleague"}) about coordinating this week.`
-        ),
-      40
-    );
+    const chatId = openPersonChat(person);
+    router.push(`/?chat=${encodeURIComponent(chatId)}`);
   };
 
   const schedule = () => {
@@ -142,13 +136,15 @@ export function PersonProfileView({ person }: { person: PersonProfile }) {
                 )}
 
                 <div className="mt-5 flex flex-wrap gap-2" data-person-actions>
-                  <PillAction
-                    icon={MessageCircle}
-                    arrow={false}
-                    onClick={message}
-                  >
-                    Message in Magnus
-                  </PillAction>
+                  <span data-person-message>
+                    <PillAction
+                      icon={MessageCircle}
+                      arrow={false}
+                      onClick={message}
+                    >
+                      Message
+                    </PillAction>
+                  </span>
                   <PillAction
                     icon={CalendarDays}
                     arrow={false}
@@ -176,10 +172,10 @@ export function PersonProfileView({ person }: { person: PersonProfile }) {
           <section className="mt-8">
             <div className="mb-3 flex items-center justify-between gap-2">
               <h2 className="text-[15px] font-semibold text-[var(--text-primary)]">
-                Recent posts
+                In B&amp;G Live
               </h2>
               <PillAction href="/feed" size="sm">
-                Open feed
+                Open B&amp;G Live
               </PillAction>
             </div>
 

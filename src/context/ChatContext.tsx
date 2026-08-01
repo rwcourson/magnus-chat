@@ -10,7 +10,11 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { currentUser, initialChats } from "@/lib/mock-data";
+import {
+  currentUser,
+  initialChats,
+  mergeSeedChatMeta,
+} from "@/lib/mock-data";
 import { demoCatchUpPersona, scoutSignals } from "@/lib/scout-data";
 import {
   briefToAssistantMessage,
@@ -27,6 +31,8 @@ import {
   writeString,
 } from "@/lib/persist";
 import { answerFromKnowledge } from "@/lib/ai/knowledge";
+import { ensurePrivateChatWithPerson } from "@/lib/person-chat";
+import type { PersonProfile } from "@/lib/people-data";
 import type { ChatThread, Message } from "@/types/chat";
 import type { AppMode } from "@/types/home";
 
@@ -54,7 +60,7 @@ interface ChatContextValue {
   rememberLastChatPath: (path: string) => void;
   /**
    * Switch into Chat mode and return the path to navigate to
-   * (restores last surface — never a flash empty new-chat).
+   * (always a blank new-chat surface on `/`).
    */
   enterChatMode: () => string;
   setSearchQuery: (q: string) => void;
@@ -62,6 +68,17 @@ interface ChatContextValue {
   setSidebarCollapsed: (collapsed: boolean) => void;
   selectChat: (id: string | null) => void;
   newChat: () => void;
+  /**
+   * Insert or replace a thread and select it (e.g. promote popup chat to full).
+   */
+  upsertChat: (chat: ChatThread) => void;
+  /**
+   * Open (or create) a private 1:1 chat with a directory person.
+   * Returns the chat id for navigation.
+   */
+  openPersonChat: (
+    person: Pick<PersonProfile, "id" | "name" | "handle" | "role">
+  ) => string;
   /** Intranet home landing (does not wipe last chat surface). */
   goHome: () => void;
   sendMessage: (content: string) => void;
@@ -74,6 +91,8 @@ interface ChatContextValue {
   /** Edit a user message and resubmit from that point. */
   editAndResend: (messageId: string, content: string) => void;
   renameChat: (id: string, title: string) => void;
+  /** Mask title as “Private” in lists until the chat is open. */
+  setChatPrivate: (id: string, isPrivate: boolean) => void;
   archiveChat: (id: string) => void;
   unarchiveChat: (id: string) => void;
   deleteChat: (id: string) => void;
@@ -100,8 +119,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
   /** Intentional blank Magnus composer — not the Home→Chat transition. */
   const [isNewChatSurface, setIsNewChatSurface] = useState(false);
-  const [lastChatPath, setLastChatPath] = useState("/messages");
-  const lastChatPathRef = useRef("/messages");
+  const [lastChatPath, setLastChatPath] = useState("/");
+  const lastChatPathRef = useRef("/");
 
   const typingTimerRef = useRef<number | null>(null);
   const typingTargetRef = useRef<string | null>(null);
@@ -131,7 +150,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const rememberLastChatPath = useCallback((path: string) => {
-    const next = path.trim() || "/messages";
+    let next = path.trim() || "/";
+    // Legacy team-messaging surface → Magnus chat home
+    if (next.startsWith("/messages")) next = "/";
     lastChatPathRef.current = next;
     setLastChatPath(next);
     writeString(PERSIST_KEYS.lastChatPath, next);
@@ -139,51 +160,23 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   /**
    * Enter Chat mode and return the path the shell should open.
-   * Always lands on a real Chat surface — last session view, or a new
-   * Magnus chat — never the Home intranet landing with a Chat sidebar.
+   * Always lands on a blank new-chat screen (never restores a prior thread
+   * or catalog page). History remains available from the sidebar.
    */
   const enterChatMode = useCallback(() => {
     setAppMode("chat");
-    let path = (lastChatPathRef.current || "/messages").trim() || "/messages";
-
-    // Restore Magnus thread from last path
-    let chatIdFromPath: string | null = null;
+    setIsNewChatSurface(true);
+    setActiveChatId(null);
+    lastChatPathRef.current = "/";
+    setLastChatPath("/");
+    writeString(PERSIST_KEYS.lastChatPath, "/");
     try {
-      if (path.includes("chat=")) {
-        const q = path.includes("?") ? path.slice(path.indexOf("?") + 1) : "";
-        chatIdFromPath = new URLSearchParams(q).get("chat");
-      }
+      localStorage.removeItem(PERSIST_KEYS.activeChat);
     } catch {
-      chatIdFromPath = null;
+      /* ignore */
     }
-
-    if (chatIdFromPath) {
-      setIsNewChatSurface(false);
-      setActiveChatId(chatIdFromPath);
-      return path.startsWith("/") ? path : `/?chat=${encodeURIComponent(chatIdFromPath)}`;
-    }
-
-    // Explicit blank Magnus surface (or bare "/") → new chat empty state
-    if (path === "/" || path === "" || path.startsWith("/chat")) {
-      // Prefer reopening the last active thread if we still have one
-      if (activeChatId) {
-        setIsNewChatSurface(false);
-        const restore = `/?chat=${encodeURIComponent(activeChatId)}`;
-        lastChatPathRef.current = restore;
-        setLastChatPath(restore);
-        return restore;
-      }
-      setIsNewChatSurface(true);
-      setActiveChatId(null);
-      lastChatPathRef.current = "/";
-      setLastChatPath("/");
-      return "/";
-    }
-
-    // Messages / catalog / other chat-mode routes
-    setIsNewChatSurface(false);
-    return path;
-  }, [setAppMode, activeChatId]);
+    return "/";
+  }, [setAppMode]);
 
   const setSidebarCollapsedPersist = useCallback((collapsed: boolean) => {
     setSidebarCollapsed(collapsed);
@@ -199,16 +192,16 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     }
 
     const savedChats = readJson<ChatThread[]>(PERSIST_KEYS.chats);
+    const list =
+      Array.isArray(savedChats) && savedChats.length > 0
+        ? mergeSeedChatMeta(savedChats)
+        : initialChats;
     if (Array.isArray(savedChats) && savedChats.length > 0) {
-      setChats(savedChats);
+      setChats(list);
     }
 
     const savedActive = readString(PERSIST_KEYS.activeChat);
     if (savedActive) {
-      const list =
-        Array.isArray(savedChats) && savedChats.length > 0
-          ? savedChats
-          : initialChats;
       if (list.some((c) => c.id === savedActive)) {
         setActiveChatId(savedActive);
       }
@@ -216,8 +209,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
     const savedPath = readString(PERSIST_KEYS.lastChatPath);
     if (savedPath && savedPath.startsWith("/")) {
-      lastChatPathRef.current = savedPath;
-      setLastChatPath(savedPath);
+      // Legacy team Messages path → Magnus chat
+      const path = savedPath.startsWith("/messages") ? "/" : savedPath;
+      lastChatPathRef.current = path;
+      setLastChatPath(path);
     }
 
     const collapsed = readString(PERSIST_KEYS.sidebarCollapsed);
@@ -292,9 +287,39 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     rememberLastChatPath("/");
   }, [setAppMode, rememberLastChatPath]);
 
+  const upsertChat = useCallback(
+    (chat: ChatThread) => {
+      setChats((prev) => {
+        const i = prev.findIndex((c) => c.id === chat.id);
+        if (i >= 0) {
+          const next = [...prev];
+          next[i] = chat;
+          return next;
+        }
+        return [chat, ...prev];
+      });
+      setActiveChatId(chat.id);
+      setIsNewChatSurface(false);
+      setAppMode("chat");
+      setSidebarOpen(false);
+      rememberLastChatPath(`/?chat=${encodeURIComponent(chat.id)}`);
+    },
+    [setAppMode, rememberLastChatPath]
+  );
+
+  const openPersonChat = useCallback(
+    (person: Pick<PersonProfile, "id" | "name" | "handle" | "role">) => {
+      const { chat } = ensurePrivateChatWithPerson(chats, person);
+      upsertChat(chat);
+      return chat.id;
+    },
+    [chats, upsertChat]
+  );
+
   const goHome = useCallback(() => {
-    // Keep activeChatId + lastChatPath so Chat mode restores the prior surface
+    // Clear thread selection so returning to Chat shows new-chat empty state
     setIsNewChatSurface(false);
+    setActiveChatId(null);
     setAppMode("home");
     setSidebarOpen(false);
   }, [setAppMode]);
@@ -308,6 +333,20 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           ? {
               ...c,
               title: next.length > 80 ? `${next.slice(0, 78)}…` : next,
+              updatedAt: new Date().toISOString(),
+            }
+          : c
+      )
+    );
+  }, []);
+
+  const setChatPrivate = useCallback((id: string, isPrivate: boolean) => {
+    setChats((prev) =>
+      prev.map((c) =>
+        c.id === id
+          ? {
+              ...c,
+              private: isPrivate,
               updatedAt: new Date().toISOString(),
             }
           : c
@@ -783,6 +822,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     setSidebarCollapsed: setSidebarCollapsedPersist,
     selectChat,
     newChat,
+    upsertChat,
+    openPersonChat,
     goHome,
     sendMessage,
     catchMeUp,
@@ -790,6 +831,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     regenerate,
     editAndResend,
     renameChat,
+    setChatPrivate,
     archiveChat,
     unarchiveChat,
     deleteChat,
