@@ -60,7 +60,7 @@ interface ChatContextValue {
   rememberLastChatPath: (path: string) => void;
   /**
    * Switch into Chat mode and return the path to navigate to
-   * (always a blank new-chat surface on `/`).
+   * (restores last surface — never a flash empty new-chat).
    */
   enterChatMode: () => string;
   setSearchQuery: (q: string) => void;
@@ -119,8 +119,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
   /** Intentional blank Magnus composer — not the Home→Chat transition. */
   const [isNewChatSurface, setIsNewChatSurface] = useState(false);
-  const [lastChatPath, setLastChatPath] = useState("/");
-  const lastChatPathRef = useRef("/");
+  const [lastChatPath, setLastChatPath] = useState("/messages");
+  const lastChatPathRef = useRef("/messages");
 
   const typingTimerRef = useRef<number | null>(null);
   const typingTargetRef = useRef<string | null>(null);
@@ -150,9 +150,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const rememberLastChatPath = useCallback((path: string) => {
-    let next = path.trim() || "/";
-    // Legacy team-messaging surface → Magnus chat home
-    if (next.startsWith("/messages")) next = "/";
+    const next = path.trim() || "/messages";
     lastChatPathRef.current = next;
     setLastChatPath(next);
     writeString(PERSIST_KEYS.lastChatPath, next);
@@ -160,23 +158,53 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   /**
    * Enter Chat mode and return the path the shell should open.
-   * Always lands on a blank new-chat screen (never restores a prior thread
-   * or catalog page). History remains available from the sidebar.
+   * Always lands on a real Chat surface — last session view, or a new
+   * Magnus chat — never the Home intranet landing with a Chat sidebar.
    */
   const enterChatMode = useCallback(() => {
     setAppMode("chat");
-    setIsNewChatSurface(true);
-    setActiveChatId(null);
-    lastChatPathRef.current = "/";
-    setLastChatPath("/");
-    writeString(PERSIST_KEYS.lastChatPath, "/");
+    let path = (lastChatPathRef.current || "/messages").trim() || "/messages";
+
+    // Restore Magnus thread from last path
+    let chatIdFromPath: string | null = null;
     try {
-      localStorage.removeItem(PERSIST_KEYS.activeChat);
+      if (path.includes("chat=")) {
+        const q = path.includes("?") ? path.slice(path.indexOf("?") + 1) : "";
+        chatIdFromPath = new URLSearchParams(q).get("chat");
+      }
     } catch {
-      /* ignore */
+      chatIdFromPath = null;
     }
-    return "/";
-  }, [setAppMode]);
+
+    if (chatIdFromPath) {
+      setIsNewChatSurface(false);
+      setActiveChatId(chatIdFromPath);
+      return path.startsWith("/")
+        ? path
+        : `/?chat=${encodeURIComponent(chatIdFromPath)}`;
+    }
+
+    // Explicit blank Magnus surface (or bare "/") → new chat empty state
+    if (path === "/" || path === "" || path.startsWith("/chat")) {
+      // Prefer reopening the last active thread if we still have one
+      if (activeChatId) {
+        setIsNewChatSurface(false);
+        const restore = `/?chat=${encodeURIComponent(activeChatId)}`;
+        lastChatPathRef.current = restore;
+        setLastChatPath(restore);
+        return restore;
+      }
+      setIsNewChatSurface(true);
+      setActiveChatId(null);
+      lastChatPathRef.current = "/";
+      setLastChatPath("/");
+      return "/";
+    }
+
+    // Messages / catalog / other chat-mode routes
+    setIsNewChatSurface(false);
+    return path;
+  }, [setAppMode, activeChatId]);
 
   const setSidebarCollapsedPersist = useCallback((collapsed: boolean) => {
     setSidebarCollapsed(collapsed);
@@ -209,10 +237,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
     const savedPath = readString(PERSIST_KEYS.lastChatPath);
     if (savedPath && savedPath.startsWith("/")) {
-      // Legacy team Messages path → Magnus chat
-      const path = savedPath.startsWith("/messages") ? "/" : savedPath;
-      lastChatPathRef.current = path;
-      setLastChatPath(path);
+      lastChatPathRef.current = savedPath;
+      setLastChatPath(savedPath);
     }
 
     const collapsed = readString(PERSIST_KEYS.sidebarCollapsed);
@@ -317,9 +343,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   );
 
   const goHome = useCallback(() => {
-    // Clear thread selection so returning to Chat shows new-chat empty state
+    // Keep activeChatId + lastChatPath so Chat mode restores the prior surface
     setIsNewChatSurface(false);
-    setActiveChatId(null);
     setAppMode("home");
     setSidebarOpen(false);
   }, [setAppMode]);
