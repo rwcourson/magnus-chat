@@ -10,11 +10,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import {
-  currentUser,
-  initialChats,
-  mergeSeedChatMeta,
-} from "@/lib/mock-data";
+import { currentUser, initialChats } from "@/lib/mock-data";
 import { demoCatchUpPersona, scoutSignals } from "@/lib/scout-data";
 import {
   briefToAssistantMessage,
@@ -91,8 +87,6 @@ interface ChatContextValue {
   /** Edit a user message and resubmit from that point. */
   editAndResend: (messageId: string, content: string) => void;
   renameChat: (id: string, title: string) => void;
-  /** Mask title as “Private” in lists until the chat is open. */
-  setChatPrivate: (id: string, isPrivate: boolean) => void;
   archiveChat: (id: string) => void;
   unarchiveChat: (id: string) => void;
   deleteChat: (id: string) => void;
@@ -220,16 +214,16 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     }
 
     const savedChats = readJson<ChatThread[]>(PERSIST_KEYS.chats);
-    const list =
-      Array.isArray(savedChats) && savedChats.length > 0
-        ? mergeSeedChatMeta(savedChats)
-        : initialChats;
     if (Array.isArray(savedChats) && savedChats.length > 0) {
-      setChats(list);
+      setChats(savedChats);
     }
 
     const savedActive = readString(PERSIST_KEYS.activeChat);
     if (savedActive) {
+      const list =
+        Array.isArray(savedChats) && savedChats.length > 0
+          ? savedChats
+          : initialChats;
       if (list.some((c) => c.id === savedActive)) {
         setActiveChatId(savedActive);
       }
@@ -358,20 +352,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           ? {
               ...c,
               title: next.length > 80 ? `${next.slice(0, 78)}…` : next,
-              updatedAt: new Date().toISOString(),
-            }
-          : c
-      )
-    );
-  }, []);
-
-  const setChatPrivate = useCallback((id: string, isPrivate: boolean) => {
-    setChats((prev) =>
-      prev.map((c) =>
-        c.id === id
-          ? {
-              ...c,
-              private: isPrivate,
               updatedAt: new Date().toISOString(),
             }
           : c
@@ -856,7 +836,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     regenerate,
     editAndResend,
     renameChat,
-    setChatPrivate,
     archiveChat,
     unarchiveChat,
     deleteChat,

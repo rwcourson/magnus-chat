@@ -28,6 +28,9 @@ interface FeedPostCardProps {
   post: FeedPost;
   index?: number;
   nowMs?: number;
+  /** Controlled bookmark state from NewsFeed (accepted for API compat). */
+  bookmarked?: boolean;
+  onBookmarkChange?: (postId: string, bookmarked: boolean) => void;
   /** Open / close inline reply thread */
   onOpenDetail?: (postId: string) => void;
   isFocused?: boolean;
@@ -51,11 +54,15 @@ export function FeedPostCard({
   post,
   index = 0,
   nowMs,
+  bookmarked: _bookmarked,
+  onBookmarkChange: _onBookmarkChange,
   onOpenDetail,
   isFocused,
   comments: controlledComments,
   onCommentsChange,
 }: FeedPostCardProps) {
+  void _bookmarked;
+  void _onBookmarkChange;
   const seedComments = useMemo(() => getPostComments(post), [post]);
   const [localComments, setLocalComments] =
     useState<FeedComment[]>(seedComments);
@@ -372,7 +379,6 @@ export function FeedPostCard({
                     comments={comments}
                     onChange={setComments}
                     nowMs={nowMs}
-                    autoFocus
                   />
                 </div>
               </motion.div>

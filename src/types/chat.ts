@@ -108,6 +108,11 @@ export interface ChatThread {
   messages: Message[];
   /** Hidden from the main chat list when true */
   archived?: boolean;
+  /**
+   * Sensitive / 1:1 thread — list UI may mask title until open.
+   * Used by person-profile Message chats.
+   */
+  private?: boolean;
 }
 
 /** Demo capabilities — not real IAM; drives gated nav/surfaces. */
